@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { upsertKpis, deleteKpis, upsertNote } from "@/lib/supabase/queries";
-import { STORABLE_METRICS } from "@/lib/constants";
+import { STORABLE_METRICS, CHANNEL_NOT_EXISTED } from "@/lib/constants";
 import { toast } from "sonner";
 import type { YearKpiData } from "@/types";
 
@@ -35,6 +36,7 @@ export function DataEntryDialog({
   onSaved,
 }: DataEntryDialogProps) {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [channelActive, setChannelActive] = useState<Record<string, boolean>>({});
   const [noteValue, setNoteValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,11 +45,19 @@ export function DataEntryDialog({
     if (!open) return;
 
     const values: Record<string, string> = {};
+    const active: Record<string, boolean> = {};
     for (const metric of STORABLE_METRICS) {
       const val = currentData?.entries[metric.key];
-      values[metric.key] = val !== null && val !== undefined ? String(val) : "";
+      if (val === CHANNEL_NOT_EXISTED) {
+        values[metric.key] = "";
+        active[metric.key] = false;
+      } else {
+        values[metric.key] = val !== null && val !== undefined ? String(val) : "";
+        active[metric.key] = true;
+      }
     }
     setFormValues(values);
+    setChannelActive(active);
     setNoteValue(currentData?.note ?? "");
   }, [open, currentData]);
 
@@ -55,6 +65,13 @@ export function DataEntryDialog({
     // Nur Ziffern erlauben
     const cleaned = value.replace(/[^0-9]/g, "");
     setFormValues((prev) => ({ ...prev, [key]: cleaned }));
+  };
+
+  const handleToggle = (key: string, checked: boolean) => {
+    setChannelActive((prev) => ({ ...prev, [key]: checked }));
+    if (!checked) {
+      setFormValues((prev) => ({ ...prev, [key]: "" }));
+    }
   };
 
   const handleSave = async () => {
@@ -65,23 +82,32 @@ export function DataEntryDialog({
       const toDelete: string[] = [];
 
       for (const metric of STORABLE_METRICS) {
-        const val = formValues[metric.key];
-        if (val && val.trim() !== "") {
-          const numVal = parseInt(val, 10);
-          if (!isNaN(numVal) && numVal >= 0) {
-            toUpsert.push({
-              year,
-              metric_key: metric.key,
-              value: numVal,
-            });
-          }
+        if (!channelActive[metric.key]) {
+          // Kanal existierte noch nicht — Sentinel-Wert speichern
+          toUpsert.push({
+            year,
+            metric_key: metric.key,
+            value: CHANNEL_NOT_EXISTED,
+          });
         } else {
-          // Feld ist leer — wenn vorher ein Wert da war, loeschen
-          if (
-            currentData?.entries[metric.key] !== null &&
-            currentData?.entries[metric.key] !== undefined
-          ) {
-            toDelete.push(metric.key);
+          const val = formValues[metric.key];
+          if (val && val.trim() !== "") {
+            const numVal = parseInt(val, 10);
+            if (!isNaN(numVal) && numVal >= 0) {
+              toUpsert.push({
+                year,
+                metric_key: metric.key,
+                value: numVal,
+              });
+            }
+          } else {
+            // Feld ist leer — wenn vorher ein Wert da war, loeschen
+            if (
+              currentData?.entries[metric.key] !== null &&
+              currentData?.entries[metric.key] !== undefined
+            ) {
+              toDelete.push(metric.key);
+            }
           }
         }
       }
@@ -114,22 +140,49 @@ export function DataEntryDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {STORABLE_METRICS.map((metric) => (
-            <div key={metric.key} className="space-y-1">
-              <Label htmlFor={metric.key}>{metric.label}</Label>
-              <Input
-                id={metric.key}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="0"
-                value={formValues[metric.key] ?? ""}
-                onChange={(e) =>
-                  handleValueChange(metric.key, e.target.value)
-                }
-              />
-            </div>
-          ))}
+          {STORABLE_METRICS.map((metric) => {
+            const isActive = channelActive[metric.key] ?? true;
+            return (
+              <div key={metric.key} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor={metric.key}
+                    className={!isActive ? "text-muted-foreground" : ""}
+                  >
+                    {metric.label}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {isActive ? "Aktiv" : "Existierte nicht"}
+                    </span>
+                    <Switch
+                      checked={isActive}
+                      onCheckedChange={(checked) =>
+                        handleToggle(metric.key, checked)
+                      }
+                    />
+                  </div>
+                </div>
+                {isActive ? (
+                  <Input
+                    id={metric.key}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="0"
+                    value={formValues[metric.key] ?? ""}
+                    onChange={(e) =>
+                      handleValueChange(metric.key, e.target.value)
+                    }
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground italic py-2">
+                    Kanal existierte in {year} noch nicht
+                  </p>
+                )}
+              </div>
+            );
+          })}
 
           <Separator />
 

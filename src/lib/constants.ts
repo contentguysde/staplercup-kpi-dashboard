@@ -70,3 +70,6 @@ export const STORABLE_METRICS = METRICS.filter((m) => !m.isComputed);
 
 /** Erstes verfuegbares Jahr */
 export const FIRST_YEAR = 2022;
+
+/** Sentinel-Wert: Kanal existierte in diesem Jahr noch nicht */
+export const CHANNEL_NOT_EXISTED = -1;
