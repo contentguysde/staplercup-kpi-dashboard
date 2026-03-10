@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import { useKpiData } from "@/hooks/use-kpi-data";
 import { DashboardHeader } from "./dashboard-header";
 import { YearSelector } from "./year-selector";
@@ -21,6 +23,15 @@ export function DashboardPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const { data, isLoading, isError, refetch } = useKpiData(selectedYear);
+  const { user, role, signOut } = useAuth();
+  const router = useRouter();
+
+  const isAdmin = role === "admin";
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   const hasData =
     data &&
@@ -32,7 +43,12 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <DashboardHeader onEditClick={() => setIsDialogOpen(true)} />
+      <DashboardHeader
+        onEditClick={() => setIsDialogOpen(true)}
+        isAdmin={isAdmin}
+        onLogout={handleLogout}
+        userEmail={user?.email ?? ""}
+      />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {viewMode === "dashboard" ? (
@@ -83,12 +99,16 @@ export function DashboardPage() {
               <p className="text-lg font-medium text-muted-foreground">
                 Keine Daten für {selectedYear}
               </p>
-              <p className="text-sm text-muted-foreground">
-                Klicke auf &quot;Daten bearbeiten&quot;, um KPIs zu erfassen.
-              </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                Daten erfassen
-              </Button>
+              {isAdmin && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Klicke auf &quot;Daten bearbeiten&quot;, um KPIs zu erfassen.
+                  </p>
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    Daten erfassen
+                  </Button>
+                </>
+              )}
             </div>
           )}
 
@@ -106,13 +126,15 @@ export function DashboardPage() {
 
       {viewMode === "charts" && <KpiCharts />}
 
-      <DataEntryDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        year={selectedYear}
-        currentData={data?.currentYear ?? null}
-        onSaved={refetch}
-      />
+      {isAdmin && (
+        <DataEntryDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          year={selectedYear}
+          currentData={data?.currentYear ?? null}
+          onSaved={refetch}
+        />
+      )}
     </div>
   );
 }
