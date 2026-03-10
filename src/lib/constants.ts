@@ -69,4 +69,4 @@ export const METRICS: MetricConfig[] = [
 export const STORABLE_METRICS = METRICS.filter((m) => !m.isComputed);
 
 /** Erstes verfuegbares Jahr */
-export const FIRST_YEAR = 2023;
+export const FIRST_YEAR = 2022;
