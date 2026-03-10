@@ -1,6 +1,6 @@
 import type { MetricConfig } from "@/types";
 
-/** Alle verfuegbaren Metriken mit UI-Konfiguration */
+/** Alle verfügbaren Metriken mit UI-Konfiguration */
 export const METRICS: MetricConfig[] = [
   {
     key: "social_media_followers_total",
@@ -65,10 +65,10 @@ export const METRICS: MetricConfig[] = [
   },
 ];
 
-/** Nur die Metriken die in der DB gespeichert werden (ohne berechnete) */
+/** Nur die Metriken, die in der DB gespeichert werden (ohne berechnete) */
 export const STORABLE_METRICS = METRICS.filter((m) => !m.isComputed);
 
-/** Erstes verfuegbares Jahr */
+/** Erstes verfügbares Jahr */
 export const FIRST_YEAR = 2022;
 
 /** Sentinel-Wert: Kanal existierte in diesem Jahr noch nicht */

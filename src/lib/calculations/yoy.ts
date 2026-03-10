@@ -1,6 +1,6 @@
 import type { YoYResult } from "@/types";
 
-/** Berechnet die Year-over-Year Veraenderung */
+/** Berechnet die Year-over-Year Veränderung */
 export function calculateYoY(
   currentValue: number | null,
   previousValue: number | null

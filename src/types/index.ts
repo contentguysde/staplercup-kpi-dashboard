@@ -17,7 +17,7 @@ export interface YearNote {
   updated_at: string;
 }
 
-/** KPI-Daten fuer ein Jahr (aufbereitet fuer das Dashboard) */
+/** KPI-Daten für ein Jahr (aufbereitet für das Dashboard) */
 export interface YearKpiData {
   year: number;
   entries: Record<string, number | null>;
@@ -30,7 +30,7 @@ export interface YoYResult {
   percentage: number | null;
 }
 
-/** Metrik-Konfiguration (fuer UI-Rendering) */
+/** Metrik-Konfiguration (für UI-Rendering) */
 export interface MetricConfig {
   key: string;
   label: string;
@@ -42,7 +42,7 @@ export interface MetricConfig {
 /** Metrik-Kategorien */
 export type MetricCategory = "social_media" | "reichweite" | "events";
 
-/** Upsert-Payload fuer Supabase */
+/** Upsert-Payload für Supabase */
 export interface UpsertEntry {
   year: number;
   metric_key: string;

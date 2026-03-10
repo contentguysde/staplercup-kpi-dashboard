@@ -40,7 +40,7 @@ export function DataEntryDialog({
   const [noteValue, setNoteValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Formular mit aktuellen Werten vorausfuellen
+  // Formular mit aktuellen Werten vorausfüllen
   useEffect(() => {
     if (!open) return;
 
@@ -101,7 +101,7 @@ export function DataEntryDialog({
               });
             }
           } else {
-            // Feld ist leer — wenn vorher ein Wert da war, loeschen
+            // Feld ist leer — wenn vorher ein Wert da war, löschen
             if (
               currentData?.entries[metric.key] !== null &&
               currentData?.entries[metric.key] !== undefined
@@ -118,7 +118,7 @@ export function DataEntryDialog({
         upsertNote(year, noteValue),
       ]);
 
-      toast.success(`Daten fuer ${year} gespeichert.`);
+      toast.success(`Daten für ${year} gespeichert.`);
       onOpenChange(false);
       onSaved();
     } catch {
@@ -134,7 +134,7 @@ export function DataEntryDialog({
         <DialogHeader>
           <DialogTitle>Daten bearbeiten — {year}</DialogTitle>
           <DialogDescription>
-            KPI-Werte fuer das Jahr {year} eingeben oder bearbeiten. Leere
+            KPI-Werte für das Jahr {year} eingeben oder bearbeiten. Leere
             Felder werden entfernt.
           </DialogDescription>
         </DialogHeader>

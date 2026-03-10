@@ -14,7 +14,7 @@ export function YearSelector({
   availableYears,
   onYearChange,
 }: YearSelectorProps) {
-  // Zeige alle Jahre von FIRST_YEAR bis zum aktuellen oder hoechsten verfuegbaren Jahr
+  // Zeige alle Jahre von FIRST_YEAR bis zum aktuellen oder höchsten verfügbaren Jahr
   const currentYear = new Date().getFullYear();
   const maxYear = Math.max(currentYear, ...availableYears);
   const years: number[] = [];

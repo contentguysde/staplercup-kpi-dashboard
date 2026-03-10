@@ -1,7 +1,7 @@
 import { supabase } from "./client";
 import type { KpiEntry, UpsertEntry } from "@/types";
 
-/** Alle KPI-Eintraege fuer bestimmte Jahre laden */
+/** Alle KPI-Einträge für bestimmte Jahre laden */
 export async function getKpisByYears(years: number[]): Promise<KpiEntry[]> {
   const { data, error } = await supabase
     .from("kpi_entries")
@@ -12,7 +12,7 @@ export async function getKpisByYears(years: number[]): Promise<KpiEntry[]> {
   return data ?? [];
 }
 
-/** Notiz fuer ein Jahr laden */
+/** Notiz für ein Jahr laden */
 export async function getNoteByYear(year: number): Promise<string | null> {
   const { data, error } = await supabase
     .from("year_notes")
@@ -24,7 +24,7 @@ export async function getNoteByYear(year: number): Promise<string | null> {
   return data?.note ?? null;
 }
 
-/** Alle verfuegbaren Jahre laden (fuer Tabs) */
+/** Alle verfügbaren Jahre laden (für Tabs) */
 export async function getAvailableYears(): Promise<number[]> {
   const { data, error } = await supabase
     .from("kpi_entries")
@@ -37,7 +37,7 @@ export async function getAvailableYears(): Promise<number[]> {
   return years.sort((a, b) => b - a);
 }
 
-/** KPI-Werte fuer ein Jahr upserten (Batch) */
+/** KPI-Werte für ein Jahr upserten (Batch) */
 export async function upsertKpis(entries: UpsertEntry[]): Promise<void> {
   if (entries.length === 0) return;
 
@@ -48,7 +48,7 @@ export async function upsertKpis(entries: UpsertEntry[]): Promise<void> {
   if (error) throw error;
 }
 
-/** KPI-Werte loeschen (geleerte Felder) */
+/** KPI-Werte löschen (geleerte Felder) */
 export async function deleteKpis(
   year: number,
   metricKeys: string[]
@@ -64,7 +64,7 @@ export async function deleteKpis(
   if (error) throw error;
 }
 
-/** Notiz fuer ein Jahr upserten */
+/** Notiz für ein Jahr upserten */
 export async function upsertNote(year: number, note: string): Promise<void> {
   const { error } = await supabase
     .from("year_notes")

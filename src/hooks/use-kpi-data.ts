@@ -26,7 +26,7 @@ export function useKpiData(year: number) {
         getAvailableYears(),
       ]);
 
-      // Eintraege nach Jahr aufteilen
+      // Einträge nach Jahr aufteilen
       const currentEntries: Record<string, number | null> = {};
       const previousEntries: Record<string, number | null> = {};
 

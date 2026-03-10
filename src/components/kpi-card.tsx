@@ -54,7 +54,7 @@ export function KpiCard({ metric, currentValue, previousValue }: KpiCardProps) {
   const Icon = ICON_MAP[metric.icon] ?? Users;
   const channelNotExisted = currentValue === CHANNEL_NOT_EXISTED;
 
-  // Fuer Berechnung: Sentinel-Wert wie null behandeln
+  // Für Berechnung: Sentinel-Wert wie null behandeln
   const displayValue = channelNotExisted ? null : currentValue;
   const prevDisplayValue =
     previousValue === CHANNEL_NOT_EXISTED ? null : previousValue;
@@ -126,7 +126,7 @@ export function KpiCard({ metric, currentValue, previousValue }: KpiCardProps) {
                 {isNeutral && (
                   <>
                     <Minus className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Keine Veraenderung</span>
+                    <span className="text-muted-foreground">Keine Veränderung</span>
                   </>
                 )}
                 <span className="text-muted-foreground ml-1">gg. Vorjahr</span>

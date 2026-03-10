@@ -18,7 +18,7 @@ export function YearNotes({ year, note }: YearNotesProps) {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRef = useRef(note ?? "");
 
-  // Reset wenn sich das Jahr aendert
+  // Reset wenn sich das Jahr ändert
   useEffect(() => {
     setValue(note ?? "");
     lastSavedRef.current = note ?? "";
@@ -58,7 +58,7 @@ export function YearNotes({ year, note }: YearNotesProps) {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <StickyNote className="h-4 w-4" />
-          Notizen fuer {year}
+          Notizen für {year}
         </CardTitle>
         {isSaving && (
           <span className="text-xs text-muted-foreground">Speichert...</span>
@@ -66,7 +66,7 @@ export function YearNotes({ year, note }: YearNotesProps) {
       </CardHeader>
       <CardContent>
         <Textarea
-          placeholder="Notizen zu diesem Jahr hinzufuegen..."
+          placeholder="Notizen zu diesem Jahr hinzufügen..."
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           rows={3}

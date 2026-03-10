@@ -53,7 +53,7 @@ export function DashboardPage() {
       {!isLoading && !isError && !hasData && (
         <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-12">
           <p className="text-lg font-medium text-muted-foreground">
-            Keine Daten fuer {selectedYear}
+            Keine Daten für {selectedYear}
           </p>
           <p className="text-sm text-muted-foreground">
             Klicke auf &quot;Daten bearbeiten&quot;, um KPIs zu erfassen.

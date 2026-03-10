@@ -4,7 +4,7 @@ export function formatNumber(value: number | null): string {
   return value.toLocaleString("de-DE");
 }
 
-/** Formatiert eine prozentuale Veraenderung (+12,3% oder -8,2%) */
+/** Formatiert eine prozentuale Veränderung (+12,3% oder -8,2%) */
 export function formatPercentage(value: number | null): string {
   if (value === null) return "–";
   const sign = value > 0 ? "+" : "";
@@ -14,7 +14,7 @@ export function formatPercentage(value: number | null): string {
   })}%`;
 }
 
-/** Formatiert eine absolute Veraenderung (+1.200 oder -500) */
+/** Formatiert eine absolute Veränderung (+1.200 oder -500) */
 export function formatChange(value: number | null): string {
   if (value === null) return "–";
   const sign = value > 0 ? "+" : "";
