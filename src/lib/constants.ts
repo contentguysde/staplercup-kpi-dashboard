@@ -3,6 +3,12 @@ import type { MetricConfig } from "@/types";
 /** Alle verfügbaren Metriken mit UI-Konfiguration */
 export const METRICS: MetricConfig[] = [
   {
+    key: "social_media_reach_total",
+    label: "Social Media Reichweite gesamt",
+    icon: "Eye",
+    category: "reichweite",
+  },
+  {
     key: "social_media_followers_total",
     label: "Social Media Follower gesamt",
     icon: "Users",

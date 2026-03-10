@@ -26,6 +26,7 @@ import {
   Newspaper,
   Monitor,
   Mail,
+  Eye,
   TrendingUp,
   TrendingDown,
   Minus,
@@ -42,6 +43,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Newspaper,
   Monitor,
   Mail,
+  Eye,
 };
 
 interface KpiCardProps {
