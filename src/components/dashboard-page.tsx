@@ -17,7 +17,7 @@ type ViewMode = "dashboard" | "charts";
 
 export function DashboardPage() {
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedYear, setSelectedYear] = useState(currentYear - 1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const { data, isLoading, isError, refetch } = useKpiData(selectedYear);
