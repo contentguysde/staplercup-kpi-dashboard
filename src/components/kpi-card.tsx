@@ -59,18 +59,12 @@ export function KpiCard({ metric, currentValue, previousValue }: KpiCardProps) {
   const isNeutral = hasYoY && yoy.absolute === 0;
 
   return (
-    <Card
-      className={
-        metric.isComputed
-          ? "border-primary/20 bg-primary/5"
-          : undefined
-      }
-    >
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {metric.label}
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold tracking-tight">
