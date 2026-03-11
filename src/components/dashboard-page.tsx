@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useKpiData } from "@/hooks/use-kpi-data";
@@ -32,6 +32,15 @@ export function DashboardPage() {
   const router = useRouter();
 
   const isAdmin = role === "admin";
+  const [isDragActive, setIsDragActive] = useState(false);
+
+  const handleDragStartCapture = useCallback(() => {
+    setIsDragActive(true);
+  }, []);
+
+  const handleDragEndCapture = useCallback(() => {
+    setIsDragActive(false);
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -134,13 +143,18 @@ export function DashboardPage() {
           )}
 
           {!isLoading && !isError && hasData && data && (
-            <>
+            <div
+              onDragStartCapture={handleDragStartCapture}
+              onDragEndCapture={handleDragEndCapture}
+              className="space-y-6"
+            >
               <MajorKpiSection
                 majorKpiKeys={majorKpiKeys}
                 currentYear={data.currentYear}
                 previousYear={data.previousYear}
                 onRemove={removeMajorKpi}
                 onDrop={handleMajorDrop}
+                isDragActive={isDragActive}
               />
               <KpiGrid
                 currentYear={data.currentYear}
@@ -149,7 +163,7 @@ export function DashboardPage() {
                 onDrop={handleGridDrop}
               />
               <YearNotes year={selectedYear} note={data.currentYear.note} />
-            </>
+            </div>
           )}
         </>
       )}

@@ -13,6 +13,7 @@ interface MajorKpiSectionProps {
   previousYear: YearKpiData | null;
   onRemove: (key: string) => void;
   onDrop?: (data: DragData) => void;
+  isDragActive?: boolean;
 }
 
 export function MajorKpiSection({
@@ -21,12 +22,14 @@ export function MajorKpiSection({
   previousYear,
   onRemove,
   onDrop,
+  isDragActive = false,
 }: MajorKpiSectionProps) {
   const [isOver, setIsOver] = useState(false);
 
   const hasMajorKpis = majorKpiKeys.length > 0;
+  const showSection = hasMajorKpis || isDragActive;
 
-  if (!hasMajorKpis) return null;
+  if (!showSection) return null;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -59,7 +62,9 @@ export function MajorKpiSection({
         className={`rounded-lg border-2 p-4 transition-colors ${
           isOver
             ? "border-primary bg-primary/5"
-            : "border-primary/20 bg-primary/[0.02]"
+            : hasMajorKpis
+              ? "border-primary/20 bg-primary/[0.02]"
+              : "border-dashed border-muted-foreground/30"
         }`}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -72,24 +77,32 @@ export function MajorKpiSection({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {majorKpiKeys.map((key) => {
-            const metric = METRICS.find((m) => m.key === key);
-            if (!metric) return null;
-            return (
-              <DraggableKpiCard
-                key={key}
-                metric={metric}
-                currentValue={currentYear.entries[key] ?? null}
-                previousValue={previousYear?.entries[key] ?? null}
-                source="major"
-                onRemove={() => onRemove(key)}
-              />
-            );
-          })}
-        </div>
+        {hasMajorKpis ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {majorKpiKeys.map((key) => {
+              const metric = METRICS.find((m) => m.key === key);
+              if (!metric) return null;
+              return (
+                <DraggableKpiCard
+                  key={key}
+                  metric={metric}
+                  currentValue={currentYear.entries[key] ?? null}
+                  previousValue={previousYear?.entries[key] ?? null}
+                  source="major"
+                  onRemove={() => onRemove(key)}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-md border border-dashed border-muted-foreground/30 p-8">
+            <p className="text-sm text-muted-foreground">
+              Hierher ziehen, um als wichtig zu markieren
+            </p>
+          </div>
+        )}
       </div>
-      <Separator />
+      {hasMajorKpis && <Separator />}
     </>
   );
 }
