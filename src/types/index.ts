@@ -42,6 +42,16 @@ export interface MetricConfig {
 /** Metrik-Kategorien */
 export type MetricCategory = "social_media" | "reichweite" | "events";
 
+/** Kanal-Definition (für Kanäle-Ansicht) */
+export interface ChannelDefinition {
+  id: string;
+  label: string;
+  icon: string;
+  description: string;
+  metricKeys: string[];
+  primaryMetricKey: string;
+}
+
 /** Upsert-Payload für Supabase */
 export interface UpsertEntry {
   year: number;
