@@ -1,57 +1,61 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { METRICS } from "@/lib/constants";
+import { getMajorKpiKeys, saveMajorKpiKeys } from "@/lib/supabase/queries";
 import { toast } from "sonner";
 
 const MAX_MAJOR_KPIS = 5;
-const STORAGE_PREFIX = "staplercup_major_kpis_";
-
-function getStorageKey(userId: string): string {
-  return `${STORAGE_PREFIX}${userId}`;
-}
-
-function loadFromStorage(userId: string): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(getStorageKey(userId));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    const validKeys = new Set(METRICS.map((m) => m.key));
-    return parsed.filter((k): k is string => typeof k === "string" && validKeys.has(k));
-  } catch {
-    return [];
-  }
-}
-
-function saveToStorage(userId: string, keys: string[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(getStorageKey(userId), JSON.stringify(keys));
-  } catch {
-    // Storage voll oder nicht verfügbar — still ignorieren
-  }
-}
 
 export function useMajorKpis() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
   const [majorKpiKeys, setMajorKpiKeys] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Aus localStorage laden wenn User bekannt
+  // Aus Supabase laden wenn User bekannt
   useEffect(() => {
     if (!userId) return;
-    setMajorKpiKeys(loadFromStorage(userId));
-    setInitialized(true);
+
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const keys = await getMajorKpiKeys(userId);
+        if (cancelled) return;
+        const validKeys = new Set(METRICS.map((m) => m.key));
+        setMajorKpiKeys(keys.filter((k) => validKeys.has(k)));
+      } catch {
+        // Fehler beim Laden — mit leerer Liste starten
+      }
+      if (!cancelled) setInitialized(true);
+    }
+
+    load();
+    return () => { cancelled = true; };
   }, [userId]);
 
-  // Änderungen in localStorage persistieren
+  // Änderungen in Supabase persistieren (debounced)
   useEffect(() => {
     if (!userId || !initialized) return;
-    saveToStorage(userId, majorKpiKeys);
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveMajorKpiKeys(userId, majorKpiKeys).catch(() => {
+        // Fehler beim Speichern — still ignorieren
+      });
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [userId, majorKpiKeys, initialized]);
 
   const addMajorKpi = useCallback(

@@ -72,3 +72,30 @@ export async function upsertNote(year: number, note: string): Promise<void> {
 
   if (error) throw error;
 }
+
+/** Major-KPI-Keys des aktuellen Users laden */
+export async function getMajorKpiKeys(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .select("major_kpi_keys")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return [];
+
+  const keys = data.major_kpi_keys;
+  return Array.isArray(keys) ? keys.filter((k): k is string => typeof k === "string") : [];
+}
+
+/** Major-KPI-Keys des aktuellen Users speichern */
+export async function saveMajorKpiKeys(userId: string, keys: string[]): Promise<void> {
+  const { error } = await supabase
+    .from("user_preferences")
+    .upsert(
+      { user_id: userId, major_kpi_keys: keys },
+      { onConflict: "user_id" }
+    );
+
+  if (error) throw error;
+}
