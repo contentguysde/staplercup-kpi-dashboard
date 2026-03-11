@@ -1,6 +1,6 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useState } from "react";
 import { KpiCard } from "./kpi-card";
 import type { MetricConfig } from "@/types";
 
@@ -24,20 +24,31 @@ export function DraggableKpiCard({
   source,
   onRemove,
 }: DraggableKpiCardProps) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `${source}-${metric.key}`,
-    data: { metricKey: metric.key, source } satisfies DragData,
-  });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = (e: React.DragEvent) => {
+    const data: DragData = { metricKey: metric.key, source };
+    e.dataTransfer.setData("application/json", JSON.stringify(data));
+    e.dataTransfer.effectAllowed = "move";
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
 
   return (
-    <div ref={setNodeRef} {...attributes}>
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <KpiCard
         metric={metric}
         currentValue={currentValue}
         previousValue={previousValue}
         isDragging={isDragging}
         showDragHandle
-        dragHandleProps={listeners}
         onRemove={onRemove}
       />
     </div>

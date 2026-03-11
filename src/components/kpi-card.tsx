@@ -54,7 +54,6 @@ interface KpiCardProps {
   previousValue: number | null;
   isDragging?: boolean;
   showDragHandle?: boolean;
-  dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
   onRemove?: () => void;
 }
 
@@ -64,7 +63,6 @@ export function KpiCard({
   previousValue,
   isDragging,
   showDragHandle,
-  dragHandleProps,
   onRemove,
 }: KpiCardProps) {
   const Icon = ICON_MAP[metric.icon] ?? Users;
@@ -86,13 +84,9 @@ export function KpiCard({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {showDragHandle && (
-            <button
-              {...dragHandleProps}
-              className="shrink-0 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
-              aria-label="KPI verschieben"
-            >
+            <span className="shrink-0 cursor-grab text-muted-foreground">
               <GripVertical className="h-4 w-4" />
-            </button>
+            </span>
           )}
           <CardTitle className="text-sm font-medium text-muted-foreground truncate">
             {metric.label}

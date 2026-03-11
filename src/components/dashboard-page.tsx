@@ -2,27 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragStartEvent,
-  type DragEndEvent,
-} from "@dnd-kit/core";
 import { useAuth } from "@/contexts/auth-context";
 import { useKpiData } from "@/hooks/use-kpi-data";
 import { useMajorKpis } from "@/hooks/use-major-kpis";
-import { METRICS } from "@/lib/constants";
 import { DashboardHeader } from "./dashboard-header";
 import { YearSelector } from "./year-selector";
 import { KpiGrid } from "./kpi-grid";
 import { KpiCharts } from "./kpi-charts";
 import { ChannelGrid } from "./channel-grid";
 import { MajorKpiSection } from "./major-kpi-section";
-import { KpiCard } from "./kpi-card";
 import { YearNotes } from "./year-notes";
 import { DataEntryDialog } from "./data-entry-dialog";
 import { DashboardSkeleton } from "./dashboard-skeleton";
@@ -38,7 +26,6 @@ export function DashboardPage() {
   const [selectedYear, setSelectedYear] = useState(currentYear - 1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
-  const [activeDragKey, setActiveDragKey] = useState<string | null>(null);
   const { data, isLoading, isError, refetch } = useKpiData(selectedYear);
   const { user, role, signOut } = useAuth();
   const { majorKpiKeys, addMajorKpi, removeMajorKpi } = useMajorKpis();
@@ -46,41 +33,21 @@ export function DashboardPage() {
 
   const isAdmin = role === "admin";
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor)
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const dragData = event.active.data.current as DragData | undefined;
-    setActiveDragKey(dragData?.metricKey ?? null);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragKey(null);
-    const { active, over } = event;
-    if (!over) return;
-
-    const dragData = active.data.current as DragData | undefined;
-    if (!dragData) return;
-
-    const { metricKey, source } = dragData;
-    const targetZone = over.id as string;
-
-    if (source === "grid" && targetZone === "major-kpi-zone") {
-      addMajorKpi(metricKey);
-    } else if (source === "major" && targetZone === "main-grid-zone") {
-      removeMajorKpi(metricKey);
-    }
-  };
-
-  const handleDragCancel = () => {
-    setActiveDragKey(null);
-  };
-
   const handleLogout = async () => {
     await signOut();
     router.push("/login");
+  };
+
+  const handleMajorDrop = (dragData: DragData) => {
+    if (dragData.source === "grid") {
+      addMajorKpi(dragData.metricKey);
+    }
+  };
+
+  const handleGridDrop = (dragData: DragData) => {
+    if (dragData.source === "major") {
+      removeMajorKpi(dragData.metricKey);
+    }
   };
 
   const hasData =
@@ -90,10 +57,6 @@ export function DashboardPage() {
         k !== "social_media_followers_total" &&
         data.currentYear.entries[k] !== null
     );
-
-  const activeMetric = activeDragKey
-    ? METRICS.find((m) => m.key === activeDragKey)
-    : null;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
@@ -137,12 +100,7 @@ export function DashboardPage() {
       </div>
 
       {viewMode === "dashboard" && (
-        <DndContext
-          sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-        >
+        <>
           {isLoading && <DashboardSkeleton />}
 
           {isError && (
@@ -182,29 +140,18 @@ export function DashboardPage() {
                 currentYear={data.currentYear}
                 previousYear={data.previousYear}
                 onRemove={removeMajorKpi}
-                isDragActive={activeDragKey !== null}
+                onDrop={handleMajorDrop}
               />
               <KpiGrid
                 currentYear={data.currentYear}
                 previousYear={data.previousYear}
                 majorKpiKeys={majorKpiKeys}
+                onDrop={handleGridDrop}
               />
               <YearNotes year={selectedYear} note={data.currentYear.note} />
             </>
           )}
-
-          <DragOverlay>
-            {activeMetric && data ? (
-              <div className="rotate-2 shadow-xl">
-                <KpiCard
-                  metric={activeMetric}
-                  currentValue={data.currentYear.entries[activeMetric.key] ?? null}
-                  previousValue={data.previousYear?.entries[activeMetric.key] ?? null}
-                />
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        </>
       )}
 
       {viewMode === "channels" && (
