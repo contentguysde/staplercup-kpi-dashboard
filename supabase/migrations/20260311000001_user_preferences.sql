@@ -11,7 +11,7 @@ CREATE TABLE user_preferences (
 CREATE TRIGGER set_user_preferences_updated_at
   BEFORE UPDATE ON user_preferences
   FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
+  EXECUTE FUNCTION update_updated_at_column();
 
 -- RLS aktivieren
 ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
