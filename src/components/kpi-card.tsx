@@ -48,6 +48,13 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Eye,
 };
 
+const SUBLABEL_COLORS: Record<string, string> = {
+  "Aggregierte Kanal-Reichweiten": "border-blue-200 bg-blue-50/50 text-blue-700",
+  "Aggregierte Impressions": "border-violet-200 bg-violet-50/50 text-violet-700",
+  "Kanal-Einzelreichweite": "border-slate-200 bg-slate-50/50 text-slate-600",
+  "Aggregierte Reichweite (Mediadaten)": "border-amber-200 bg-amber-50/50 text-amber-700",
+};
+
 interface KpiCardProps {
   metric: MetricConfig;
   currentValue: number | null;
@@ -122,7 +129,7 @@ export function KpiCard({
             </div>
 
             {metric.sublabel && (
-              <Badge variant="secondary" className="mt-1 text-xs">
+              <Badge variant="outline" className={`mt-1 text-xs font-normal ${SUBLABEL_COLORS[metric.sublabel] ?? ""}`}>
                 {metric.sublabel}
               </Badge>
             )}
