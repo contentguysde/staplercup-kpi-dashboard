@@ -30,6 +30,8 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  GripVertical,
+  X,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -50,9 +52,21 @@ interface KpiCardProps {
   metric: MetricConfig;
   currentValue: number | null;
   previousValue: number | null;
+  isDragging?: boolean;
+  showDragHandle?: boolean;
+  dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
+  onRemove?: () => void;
 }
 
-export function KpiCard({ metric, currentValue, previousValue }: KpiCardProps) {
+export function KpiCard({
+  metric,
+  currentValue,
+  previousValue,
+  isDragging,
+  showDragHandle,
+  dragHandleProps,
+  onRemove,
+}: KpiCardProps) {
   const Icon = ICON_MAP[metric.icon] ?? Users;
   const channelNotExisted = currentValue === CHANNEL_NOT_EXISTED;
 
@@ -68,12 +82,34 @@ export function KpiCard({ metric, currentValue, previousValue }: KpiCardProps) {
   const isNeutral = hasYoY && yoy.absolute === 0;
 
   return (
-    <Card className={channelNotExisted ? "opacity-60" : ""}>
+    <Card className={`${channelNotExisted ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {metric.label}
-        </CardTitle>
-        <Icon className="h-4 w-4 text-primary" />
+        <div className="flex items-center gap-1.5 min-w-0">
+          {showDragHandle && (
+            <button
+              {...dragHandleProps}
+              className="shrink-0 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
+              aria-label="KPI verschieben"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
+          <CardTitle className="text-sm font-medium text-muted-foreground truncate">
+            {metric.label}
+          </CardTitle>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {onRemove && (
+            <button
+              onClick={onRemove}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="KPI entfernen"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
       </CardHeader>
       <CardContent>
         {channelNotExisted ? (
