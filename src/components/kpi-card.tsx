@@ -80,7 +80,7 @@ export function KpiCard({
   const isNeutral = hasYoY && yoy.absolute === 0;
 
   return (
-    <Card className={`${channelNotExisted ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
+    <Card className={`h-full ${channelNotExisted ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {showDragHandle && (

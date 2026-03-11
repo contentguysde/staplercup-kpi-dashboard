@@ -48,12 +48,14 @@ export function DashboardPage() {
   };
 
   const handleMajorDrop = (dragData: DragData) => {
+    setIsDragActive(false);
     if (dragData.source === "grid") {
       addMajorKpi(dragData.metricKey);
     }
   };
 
   const handleGridDrop = (dragData: DragData) => {
+    setIsDragActive(false);
     if (dragData.source === "major") {
       removeMajorKpi(dragData.metricKey);
     }

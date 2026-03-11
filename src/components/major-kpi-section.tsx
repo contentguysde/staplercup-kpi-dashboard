@@ -67,14 +67,9 @@ export function MajorKpiSection({
               : "border-dashed border-muted-foreground/30"
         }`}
       >
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">Wichtige KPIs</h2>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Per Drag & Drop verwalten
-          </p>
+        <div className="mb-4 flex items-center gap-2">
+          <Star className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold">Ausgewählte KPIs</h2>
         </div>
 
         {hasMajorKpis ? (
