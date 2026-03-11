@@ -47,6 +47,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Cache verhindern — Chrome cached sonst HTML-Responses aggressiv
+  supabaseResponse.headers.set(
+    "Cache-Control",
+    "no-cache, no-store, must-revalidate"
+  );
+
   return supabaseResponse;
 }
 
