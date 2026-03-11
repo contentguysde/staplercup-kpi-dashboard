@@ -34,6 +34,7 @@ export interface YoYResult {
 export interface MetricConfig {
   key: string;
   label: string;
+  sublabel?: string;
   icon: string;
   category: MetricCategory;
   isComputed?: boolean;

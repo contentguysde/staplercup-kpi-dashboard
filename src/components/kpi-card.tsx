@@ -121,9 +121,9 @@ export function KpiCard({
               {formatNumber(displayValue)}
             </div>
 
-            {metric.isComputed && (
+            {metric.sublabel && (
               <Badge variant="secondary" className="mt-1 text-xs">
-                Automatisch berechnet
+                {metric.sublabel}
               </Badge>
             )}
 
