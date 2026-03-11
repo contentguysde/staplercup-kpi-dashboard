@@ -51,7 +51,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 const SUBLABEL_COLORS: Record<string, string> = {
   "Aggregierte Kanal-Reichweiten": "border-blue-200 bg-blue-50/50 text-blue-700",
   "Aggregierte Impressions": "border-violet-200 bg-violet-50/50 text-violet-700",
-  "Kanal-Einzelreichweite": "border-slate-200 bg-slate-50/50 text-slate-600",
+  "Kanal-Einzelreichweite": "border-emerald-200 bg-emerald-50/50 text-emerald-700",
   "Aggregierte Reichweite (Mediadaten)": "border-amber-200 bg-amber-50/50 text-amber-700",
 };
 
