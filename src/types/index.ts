@@ -50,6 +50,7 @@ export interface ChannelDefinition {
   description: string;
   metricKeys: string[];
   primaryMetricKey: string;
+  secondaryMetricKey?: string;
 }
 
 /** Upsert-Payload für Supabase */

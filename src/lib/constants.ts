@@ -96,6 +96,7 @@ export const CHANNELS: ChannelDefinition[] = [
       "youtube_subscribers",
     ],
     primaryMetricKey: "social_media_reach_total",
+    secondaryMetricKey: "social_media_followers_total",
   },
   {
     id: "website",

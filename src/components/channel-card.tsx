@@ -161,8 +161,19 @@ export function ChannelCard({ channel, currentYear, previousYear }: ChannelCardP
     ? getValue(previousYear.entries, channel.primaryMetricKey)
     : null;
 
-  // Sub-Metriken: alle außer der Primär-Metrik
-  const subMetricKeys = channel.metricKeys.filter((k) => k !== channel.primaryMetricKey);
+  const secondaryMetric = channel.secondaryMetricKey
+    ? METRICS.find((m) => m.key === channel.secondaryMetricKey)
+    : null;
+  const secondaryCurrent = channel.secondaryMetricKey
+    ? getValue(currentYear.entries, channel.secondaryMetricKey)
+    : null;
+  const secondaryPrevious = channel.secondaryMetricKey && previousYear
+    ? getValue(previousYear.entries, channel.secondaryMetricKey)
+    : null;
+
+  // Sub-Metriken: alle außer Primär- und Sekundär-Metrik
+  const highlightedKeys = [channel.primaryMetricKey, channel.secondaryMetricKey].filter(Boolean);
+  const subMetricKeys = channel.metricKeys.filter((k) => !highlightedKeys.includes(k));
   const hasSubMetrics = subMetricKeys.length > 0;
 
   return (
@@ -190,17 +201,32 @@ export function ChannelCard({ channel, currentYear, previousYear }: ChannelCardP
           </div>
         ) : (
           <>
-            {/* Primär-KPI */}
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">
-                {primaryMetric?.label ?? channel.primaryMetricKey}
-              </p>
-              <div className="text-3xl font-bold tracking-tight">
-                {formatNumber(primaryCurrent)}
+            {/* Primär- und Sekundär-KPI */}
+            <div className={secondaryMetric ? "grid grid-cols-2 gap-6" : ""}>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">
+                  {primaryMetric?.label ?? channel.primaryMetricKey}
+                </p>
+                <div className="text-3xl font-bold tracking-tight">
+                  {formatNumber(primaryCurrent)}
+                </div>
+                <div className="mt-1">
+                  <YoYBadge current={primaryCurrent} previous={primaryPrevious} />
+                </div>
               </div>
-              <div className="mt-1">
-                <YoYBadge current={primaryCurrent} previous={primaryPrevious} />
-              </div>
+              {secondaryMetric && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {secondaryMetric.label}
+                  </p>
+                  <div className="text-3xl font-bold tracking-tight">
+                    {formatNumber(secondaryCurrent)}
+                  </div>
+                  <div className="mt-1">
+                    <YoYBadge current={secondaryCurrent} previous={secondaryPrevious} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sub-Metriken */}
