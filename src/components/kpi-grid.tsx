@@ -16,7 +16,7 @@ interface KpiGridProps {
   onDrop?: (data: DragData) => void;
   onRemove?: (key: string) => void;
   onAddClick?: () => void;
-  onReorder?: (fromIndex: number, toIndex: number) => void;
+  onReorder?: (draggedKey: string, targetKey: string, position: "before" | "after") => void;
 }
 
 export function KpiGrid({
@@ -60,9 +60,9 @@ export function KpiGrid({
     }
   };
 
-  const handleSlotDrop = (data: DragData, targetIndex: number) => {
+  const handleSlotDrop = (data: DragData, targetKey: string, position: "before" | "after") => {
     if (data.source === "grid") {
-      onReorder?.(data.sourceIndex, targetIndex);
+      onReorder?.(data.metricKey, targetKey, position);
     } else {
       onDrop?.(data);
     }
@@ -83,7 +83,7 @@ export function KpiGrid({
         return (
           <DroppableKpiSlot
             key={key}
-            index={idx}
+            metricKey={key}
             section="grid"
             onReorder={handleSlotDrop}
           >

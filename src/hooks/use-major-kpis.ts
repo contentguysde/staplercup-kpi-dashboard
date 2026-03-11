@@ -81,12 +81,14 @@ export function useMajorKpis() {
     setMajorKpiKeys((prev) => prev.filter((k) => k !== key));
   }, []);
 
-  const reorderMajorKpi = useCallback((fromIndex: number, toIndex: number) => {
+  const reorderMajorKpi = useCallback((draggedKey: string, targetKey: string, position: "before" | "after") => {
     setMajorKpiKeys((prev) => {
-      if (fromIndex === toIndex) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
+      if (draggedKey === targetKey) return prev;
+      const next = prev.filter((k) => k !== draggedKey);
+      const targetIdx = next.indexOf(targetKey);
+      if (targetIdx === -1) return prev;
+      const insertIdx = position === "after" ? targetIdx + 1 : targetIdx;
+      next.splice(insertIdx, 0, draggedKey);
       return next;
     });
   }, []);

@@ -60,14 +60,19 @@ export function useGridKpiOrder() {
     };
   }, [userId, gridKpiOrder, initialized]);
 
-  const reorderGridKpi = useCallback((fromIndex: number, toIndex: number) => {
+  const reorderGridKpi = useCallback((draggedKey: string, targetKey: string, position: "before" | "after") => {
     setGridKpiOrder((prev) => {
-      // Beim ersten Reorder: Standard-Reihenfolge initialisieren
       const current = prev ?? METRICS.map((m) => m.key);
-      if (fromIndex === toIndex) return current;
-      const next = [...current];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
+      if (draggedKey === targetKey) return current;
+
+      // Dragged-Element entfernen
+      const next = current.filter((k) => k !== draggedKey);
+      // Zielposition finden (nach Entfernen)
+      const targetIdx = next.indexOf(targetKey);
+      if (targetIdx === -1) return current;
+
+      const insertIdx = position === "after" ? targetIdx + 1 : targetIdx;
+      next.splice(insertIdx, 0, draggedKey);
       return next;
     });
   }, []);

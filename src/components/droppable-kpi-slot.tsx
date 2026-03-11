@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { DragData } from "./draggable-kpi-card";
 
 interface DroppableKpiSlotProps {
-  index: number;
+  metricKey: string;
   section: "grid" | "major";
-  onReorder: (data: DragData, targetIndex: number) => void;
+  onReorder: (data: DragData, targetKey: string, position: "before" | "after") => void;
   children: React.ReactNode;
 }
 
 export function DroppableKpiSlot({
-  index,
+  metricKey,
   section,
   onReorder,
   children,
 }: DroppableKpiSlotProps) {
   const [insertPosition, setInsertPosition] = useState<"before" | "after" | null>(null);
+  const positionRef = useRef<"before" | "after">("before");
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -26,7 +27,9 @@ export function DroppableKpiSlot({
 
       const rect = e.currentTarget.getBoundingClientRect();
       const midX = rect.left + rect.width / 2;
-      setInsertPosition(e.clientX < midX ? "before" : "after");
+      const pos = e.clientX < midX ? "before" : "after";
+      positionRef.current = pos;
+      setInsertPosition(pos);
     },
     []
   );
@@ -43,27 +46,21 @@ export function DroppableKpiSlot({
     (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      const pos = positionRef.current;
       setInsertPosition(null);
 
       try {
         const data: DragData = JSON.parse(e.dataTransfer.getData("application/json"));
-        const targetIndex = insertPosition === "after" ? index + 1 : index;
 
-        // Gleiche Sektion → Reorder, nur wenn Position sich ändert
-        if (data.source === section) {
-          const adjustedTarget = data.sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
-          if (adjustedTarget !== data.sourceIndex) {
-            onReorder(data, adjustedTarget);
-          }
-        } else {
-          // Cross-Section → an bestimmter Position einfügen
-          onReorder(data, targetIndex);
-        }
+        // Auf sich selbst droppen ignorieren
+        if (data.metricKey === metricKey) return;
+
+        onReorder(data, metricKey, pos);
       } catch {
         // Ungültige Drag-Daten ignorieren
       }
     },
-    [index, section, insertPosition, onReorder]
+    [metricKey, onReorder]
   );
 
   return (

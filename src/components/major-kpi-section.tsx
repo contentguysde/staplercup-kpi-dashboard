@@ -15,7 +15,7 @@ interface MajorKpiSectionProps {
   previousYear: YearKpiData | null;
   onRemove: (key: string) => void;
   onDrop?: (data: DragData, insertAtIndex?: number) => void;
-  onReorder?: (fromIndex: number, toIndex: number) => void;
+  onReorder?: (draggedKey: string, targetKey: string, position: "before" | "after") => void;
   isDragActive?: boolean;
 }
 
@@ -59,11 +59,14 @@ export function MajorKpiSection({
     }
   };
 
-  const handleSlotDrop = (data: DragData, targetIndex: number) => {
+  const handleSlotDrop = (data: DragData, targetKey: string, position: "before" | "after") => {
     if (data.source === "major") {
-      onReorder?.(data.sourceIndex, targetIndex);
+      onReorder?.(data.metricKey, targetKey, position);
     } else {
-      onDrop?.(data, targetIndex);
+      // Cross-Section: Zielposition berechnen für insertAtIndex
+      const targetIdx = visibleMajorKeys.indexOf(targetKey);
+      const insertIdx = position === "after" ? targetIdx + 1 : targetIdx;
+      onDrop?.(data, insertIdx);
     }
   };
 
@@ -94,7 +97,7 @@ export function MajorKpiSection({
               return (
                 <DroppableKpiSlot
                   key={key}
-                  index={idx}
+                  metricKey={key}
                   section="major"
                   onReorder={handleSlotDrop}
                 >
