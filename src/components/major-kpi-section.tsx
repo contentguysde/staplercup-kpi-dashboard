@@ -60,6 +60,7 @@ export function MajorKpiSection({
   };
 
   const handleSlotDrop = (data: DragData, targetKey: string, position: "before" | "after") => {
+    setIsOver(false);
     if (data.source === "major") {
       onReorder?.(data.metricKey, targetKey, position);
     } else {

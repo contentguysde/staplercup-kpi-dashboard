@@ -61,6 +61,7 @@ export function KpiGrid({
   };
 
   const handleSlotDrop = (data: DragData, targetKey: string, position: "before" | "after") => {
+    setIsOver(false);
     if (data.source === "grid") {
       onReorder?.(data.metricKey, targetKey, position);
     } else {
