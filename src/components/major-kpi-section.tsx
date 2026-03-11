@@ -9,6 +9,7 @@ import type { YearKpiData } from "@/types";
 
 interface MajorKpiSectionProps {
   majorKpiKeys: string[];
+  hiddenKpiKeys?: string[];
   currentYear: YearKpiData;
   previousYear: YearKpiData | null;
   onRemove: (key: string) => void;
@@ -18,6 +19,7 @@ interface MajorKpiSectionProps {
 
 export function MajorKpiSection({
   majorKpiKeys,
+  hiddenKpiKeys = [],
   currentYear,
   previousYear,
   onRemove,
@@ -26,7 +28,8 @@ export function MajorKpiSection({
 }: MajorKpiSectionProps) {
   const [isOver, setIsOver] = useState(false);
 
-  const hasMajorKpis = majorKpiKeys.length > 0;
+  const visibleMajorKeys = majorKpiKeys.filter((k) => !hiddenKpiKeys.includes(k));
+  const hasMajorKpis = visibleMajorKeys.length > 0;
   const showSection = hasMajorKpis || isDragActive;
 
   if (!showSection) return null;
@@ -74,7 +77,7 @@ export function MajorKpiSection({
 
         {hasMajorKpis ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {majorKpiKeys.map((key) => {
+            {visibleMajorKeys.map((key) => {
               const metric = METRICS.find((m) => m.key === key);
               if (!metric) return null;
               return (

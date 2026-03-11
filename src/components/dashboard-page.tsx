@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useKpiData } from "@/hooks/use-kpi-data";
 import { useMajorKpis } from "@/hooks/use-major-kpis";
+import { useHiddenKpis } from "@/hooks/use-hidden-kpis";
 import { DashboardHeader } from "./dashboard-header";
 import { YearSelector } from "./year-selector";
 import { KpiGrid } from "./kpi-grid";
 import { KpiCharts } from "./kpi-charts";
 import { ChannelGrid } from "./channel-grid";
 import { MajorKpiSection } from "./major-kpi-section";
+import { KpiVisibilityDialog } from "./kpi-visibility-dialog";
 import { YearNotes } from "./year-notes";
 import { DataEntryDialog } from "./data-entry-dialog";
 import { DashboardSkeleton } from "./dashboard-skeleton";
@@ -25,10 +27,12 @@ export function DashboardPage() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear - 1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isVisibilityDialogOpen, setIsVisibilityDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const { data, isLoading, isError, refetch } = useKpiData(selectedYear);
   const { user, role, signOut } = useAuth();
   const { majorKpiKeys, addMajorKpi, removeMajorKpi } = useMajorKpis();
+  const { hiddenKpiKeys, hideKpi, showKpi } = useHiddenKpis();
   const router = useRouter();
 
   const isAdmin = role === "admin";
@@ -60,6 +64,30 @@ export function DashboardPage() {
       removeMajorKpi(dragData.metricKey);
     }
   };
+
+  const handleHideKpi = useCallback(
+    (key: string) => {
+      hideKpi(key);
+      if (majorKpiKeys.includes(key)) {
+        removeMajorKpi(key);
+      }
+    },
+    [hideKpi, majorKpiKeys, removeMajorKpi]
+  );
+
+  const handleVisibilityToggle = useCallback(
+    (key: string) => {
+      if (hiddenKpiKeys.includes(key)) {
+        showKpi(key);
+      } else {
+        hideKpi(key);
+        if (majorKpiKeys.includes(key)) {
+          removeMajorKpi(key);
+        }
+      }
+    },
+    [hiddenKpiKeys, hideKpi, showKpi, majorKpiKeys, removeMajorKpi]
+  );
 
   const hasData =
     data &&
@@ -152,6 +180,7 @@ export function DashboardPage() {
             >
               <MajorKpiSection
                 majorKpiKeys={majorKpiKeys}
+                hiddenKpiKeys={hiddenKpiKeys}
                 currentYear={data.currentYear}
                 previousYear={data.previousYear}
                 onRemove={removeMajorKpi}
@@ -162,7 +191,10 @@ export function DashboardPage() {
                 currentYear={data.currentYear}
                 previousYear={data.previousYear}
                 majorKpiKeys={majorKpiKeys}
+                hiddenKpiKeys={hiddenKpiKeys}
                 onDrop={handleGridDrop}
+                onRemove={handleHideKpi}
+                onAddClick={() => setIsVisibilityDialogOpen(true)}
               />
               <YearNotes year={selectedYear} note={data.currentYear.note} />
             </div>
@@ -214,6 +246,13 @@ export function DashboardPage() {
           onSaved={refetch}
         />
       )}
+
+      <KpiVisibilityDialog
+        open={isVisibilityDialogOpen}
+        onOpenChange={setIsVisibilityDialogOpen}
+        hiddenKpiKeys={hiddenKpiKeys}
+        onToggle={handleVisibilityToggle}
+      />
     </div>
   );
 }

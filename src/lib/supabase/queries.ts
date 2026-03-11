@@ -99,3 +99,30 @@ export async function saveMajorKpiKeys(userId: string, keys: string[]): Promise<
 
   if (error) throw error;
 }
+
+/** Ausgeblendete KPI-Keys des aktuellen Users laden */
+export async function getHiddenKpiKeys(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .select("hidden_kpi_keys")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return [];
+
+  const keys = data.hidden_kpi_keys;
+  return Array.isArray(keys) ? keys.filter((k): k is string => typeof k === "string") : [];
+}
+
+/** Ausgeblendete KPI-Keys des aktuellen Users speichern */
+export async function saveHiddenKpiKeys(userId: string, keys: string[]): Promise<void> {
+  const { error } = await supabase
+    .from("user_preferences")
+    .upsert(
+      { user_id: userId, hidden_kpi_keys: keys },
+      { onConflict: "user_id" }
+    );
+
+  if (error) throw error;
+}
