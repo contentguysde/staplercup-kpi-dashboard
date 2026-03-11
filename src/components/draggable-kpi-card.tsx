@@ -7,6 +7,7 @@ import type { MetricConfig } from "@/types";
 export interface DragData {
   metricKey: string;
   source: "grid" | "major";
+  sourceIndex: number;
 }
 
 interface DraggableKpiCardProps {
@@ -14,6 +15,7 @@ interface DraggableKpiCardProps {
   currentValue: number | null;
   previousValue: number | null;
   source: "grid" | "major";
+  index: number;
   onRemove?: () => void;
 }
 
@@ -22,12 +24,13 @@ export function DraggableKpiCard({
   currentValue,
   previousValue,
   source,
+  index,
   onRemove,
 }: DraggableKpiCardProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragStart = (e: React.DragEvent) => {
-    const data: DragData = { metricKey: metric.key, source };
+    const data: DragData = { metricKey: metric.key, source, sourceIndex: index };
     e.dataTransfer.setData("application/json", JSON.stringify(data));
     e.dataTransfer.effectAllowed = "move";
     setIsDragging(true);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { DraggableKpiCard, type DragData } from "./draggable-kpi-card";
+import { DroppableKpiSlot } from "./droppable-kpi-slot";
 import { METRICS } from "@/lib/constants";
 import { Plus } from "lucide-react";
 import type { YearKpiData } from "@/types";
@@ -11,9 +12,11 @@ interface KpiGridProps {
   previousYear: YearKpiData | null;
   majorKpiKeys?: string[];
   hiddenKpiKeys?: string[];
+  gridKpiOrder?: string[] | null;
   onDrop?: (data: DragData) => void;
   onRemove?: (key: string) => void;
   onAddClick?: () => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
 }
 
 export function KpiGrid({
@@ -21,13 +24,18 @@ export function KpiGrid({
   previousYear,
   majorKpiKeys = [],
   hiddenKpiKeys = [],
+  gridKpiOrder,
   onDrop,
   onRemove,
   onAddClick,
+  onReorder,
 }: KpiGridProps) {
   const [isOver, setIsOver] = useState(false);
-  const filteredMetrics = METRICS.filter(
-    (m) => !majorKpiKeys.includes(m.key) && !hiddenKpiKeys.includes(m.key)
+
+  // Reihenfolge: benutzerdefiniert oder Standard
+  const baseOrder = gridKpiOrder ?? METRICS.map((m) => m.key);
+  const filteredKeys = baseOrder.filter(
+    (key) => !majorKpiKeys.includes(key) && !hiddenKpiKeys.includes(key)
   );
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -52,6 +60,14 @@ export function KpiGrid({
     }
   };
 
+  const handleSlotDrop = (data: DragData, targetIndex: number) => {
+    if (data.source === "grid") {
+      onReorder?.(data.sourceIndex, targetIndex);
+    } else {
+      onDrop?.(data);
+    }
+  };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -61,16 +77,27 @@ export function KpiGrid({
         isOver ? "ring-2 ring-primary/30 bg-primary/[0.02]" : ""
       }`}
     >
-      {filteredMetrics.map((metric) => (
-        <DraggableKpiCard
-          key={metric.key}
-          metric={metric}
-          currentValue={currentYear.entries[metric.key] ?? null}
-          previousValue={previousYear?.entries[metric.key] ?? null}
-          source="grid"
-          onRemove={onRemove ? () => onRemove(metric.key) : undefined}
-        />
-      ))}
+      {filteredKeys.map((key, idx) => {
+        const metric = METRICS.find((m) => m.key === key);
+        if (!metric) return null;
+        return (
+          <DroppableKpiSlot
+            key={key}
+            index={idx}
+            section="grid"
+            onReorder={handleSlotDrop}
+          >
+            <DraggableKpiCard
+              metric={metric}
+              currentValue={currentYear.entries[key] ?? null}
+              previousValue={previousYear?.entries[key] ?? null}
+              source="grid"
+              index={idx}
+              onRemove={onRemove ? () => onRemove(key) : undefined}
+            />
+          </DroppableKpiSlot>
+        );
+      })}
 
       {onAddClick && hiddenKpiKeys.length > 0 && (
         <button

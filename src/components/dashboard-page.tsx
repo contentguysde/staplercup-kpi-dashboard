@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useKpiData } from "@/hooks/use-kpi-data";
 import { useMajorKpis } from "@/hooks/use-major-kpis";
 import { useHiddenKpis } from "@/hooks/use-hidden-kpis";
+import { useGridKpiOrder } from "@/hooks/use-grid-kpi-order";
 import { DashboardHeader } from "./dashboard-header";
 import { YearSelector } from "./year-selector";
 import { KpiGrid } from "./kpi-grid";
@@ -31,8 +32,9 @@ export function DashboardPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const { data, isLoading, isError, refetch } = useKpiData(selectedYear);
   const { user, role, signOut } = useAuth();
-  const { majorKpiKeys, addMajorKpi, removeMajorKpi } = useMajorKpis();
+  const { majorKpiKeys, addMajorKpi, removeMajorKpi, reorderMajorKpi } = useMajorKpis();
   const { hiddenKpiKeys, hideKpi, showKpi } = useHiddenKpis();
+  const { gridKpiOrder, reorderGridKpi } = useGridKpiOrder();
   const router = useRouter();
 
   const isAdmin = role === "admin";
@@ -51,10 +53,10 @@ export function DashboardPage() {
     router.push("/login");
   };
 
-  const handleMajorDrop = (dragData: DragData) => {
+  const handleMajorDrop = (dragData: DragData, insertAtIndex?: number) => {
     setIsDragActive(false);
     if (dragData.source === "grid") {
-      addMajorKpi(dragData.metricKey);
+      addMajorKpi(dragData.metricKey, insertAtIndex);
     }
   };
 
@@ -185,6 +187,7 @@ export function DashboardPage() {
                 previousYear={data.previousYear}
                 onRemove={removeMajorKpi}
                 onDrop={handleMajorDrop}
+                onReorder={reorderMajorKpi}
                 isDragActive={isDragActive}
               />
               <KpiGrid
@@ -192,9 +195,11 @@ export function DashboardPage() {
                 previousYear={data.previousYear}
                 majorKpiKeys={majorKpiKeys}
                 hiddenKpiKeys={hiddenKpiKeys}
+                gridKpiOrder={gridKpiOrder}
                 onDrop={handleGridDrop}
                 onRemove={handleHideKpi}
                 onAddClick={() => setIsVisibilityDialogOpen(true)}
+                onReorder={reorderGridKpi}
               />
               <YearNotes year={selectedYear} note={data.currentYear.note} />
             </div>

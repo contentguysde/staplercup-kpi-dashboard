@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { METRICS } from "@/lib/constants";
 import { DraggableKpiCard, type DragData } from "./draggable-kpi-card";
+import { DroppableKpiSlot } from "./droppable-kpi-slot";
 import { Separator } from "@/components/ui/separator";
 import { Star } from "lucide-react";
 import type { YearKpiData } from "@/types";
@@ -13,7 +14,8 @@ interface MajorKpiSectionProps {
   currentYear: YearKpiData;
   previousYear: YearKpiData | null;
   onRemove: (key: string) => void;
-  onDrop?: (data: DragData) => void;
+  onDrop?: (data: DragData, insertAtIndex?: number) => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
   isDragActive?: boolean;
 }
 
@@ -24,6 +26,7 @@ export function MajorKpiSection({
   previousYear,
   onRemove,
   onDrop,
+  onReorder,
   isDragActive = false,
 }: MajorKpiSectionProps) {
   const [isOver, setIsOver] = useState(false);
@@ -56,6 +59,14 @@ export function MajorKpiSection({
     }
   };
 
+  const handleSlotDrop = (data: DragData, targetIndex: number) => {
+    if (data.source === "major") {
+      onReorder?.(data.sourceIndex, targetIndex);
+    } else {
+      onDrop?.(data, targetIndex);
+    }
+  };
+
   return (
     <>
       <div
@@ -77,18 +88,25 @@ export function MajorKpiSection({
 
         {hasMajorKpis ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleMajorKeys.map((key) => {
+            {visibleMajorKeys.map((key, idx) => {
               const metric = METRICS.find((m) => m.key === key);
               if (!metric) return null;
               return (
-                <DraggableKpiCard
+                <DroppableKpiSlot
                   key={key}
-                  metric={metric}
-                  currentValue={currentYear.entries[key] ?? null}
-                  previousValue={previousYear?.entries[key] ?? null}
-                  source="major"
-                  onRemove={() => onRemove(key)}
-                />
+                  index={idx}
+                  section="major"
+                  onReorder={handleSlotDrop}
+                >
+                  <DraggableKpiCard
+                    metric={metric}
+                    currentValue={currentYear.entries[key] ?? null}
+                    previousValue={previousYear?.entries[key] ?? null}
+                    source="major"
+                    index={idx}
+                    onRemove={() => onRemove(key)}
+                  />
+                </DroppableKpiSlot>
               );
             })}
           </div>

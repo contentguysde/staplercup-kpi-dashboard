@@ -59,12 +59,17 @@ export function useMajorKpis() {
   }, [userId, majorKpiKeys, initialized]);
 
   const addMajorKpi = useCallback(
-    (key: string) => {
+    (key: string, insertAtIndex?: number) => {
       setMajorKpiKeys((prev) => {
         if (prev.includes(key)) return prev;
         if (prev.length >= MAX_MAJOR_KPIS) {
           toast.error(`Maximal ${MAX_MAJOR_KPIS} wichtige KPIs erlaubt`);
           return prev;
+        }
+        if (insertAtIndex !== undefined) {
+          const next = [...prev];
+          next.splice(insertAtIndex, 0, key);
+          return next;
         }
         return [...prev, key];
       });
@@ -76,10 +81,20 @@ export function useMajorKpis() {
     setMajorKpiKeys((prev) => prev.filter((k) => k !== key));
   }, []);
 
+  const reorderMajorKpi = useCallback((fromIndex: number, toIndex: number) => {
+    setMajorKpiKeys((prev) => {
+      if (fromIndex === toIndex) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }, []);
+
   const isMajorKpi = useCallback(
     (key: string) => majorKpiKeys.includes(key),
     [majorKpiKeys]
   );
 
-  return { majorKpiKeys, addMajorKpi, removeMajorKpi, isMajorKpi };
+  return { majorKpiKeys, addMajorKpi, removeMajorKpi, reorderMajorKpi, isMajorKpi };
 }

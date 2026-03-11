@@ -126,3 +126,30 @@ export async function saveHiddenKpiKeys(userId: string, keys: string[]): Promise
 
   if (error) throw error;
 }
+
+/** Benutzerdefinierte Grid-Reihenfolge laden (null = Standard) */
+export async function getGridKpiOrder(userId: string): Promise<string[] | null> {
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .select("grid_kpi_order")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.grid_kpi_order) return null;
+
+  const keys = data.grid_kpi_order;
+  return Array.isArray(keys) ? keys.filter((k): k is string => typeof k === "string") : null;
+}
+
+/** Benutzerdefinierte Grid-Reihenfolge speichern */
+export async function saveGridKpiOrder(userId: string, keys: string[]): Promise<void> {
+  const { error } = await supabase
+    .from("user_preferences")
+    .upsert(
+      { user_id: userId, grid_kpi_order: keys },
+      { onConflict: "user_id" }
+    );
+
+  if (error) throw error;
+}
