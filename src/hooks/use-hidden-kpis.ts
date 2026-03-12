@@ -27,7 +27,13 @@ export function useHiddenKpis() {
           setHiddenKpiKeys(DEFAULT_HIDDEN_KEYS);
         } else {
           const validKeys = new Set(METRICS.map((m) => m.key));
-          setHiddenKpiKeys(keys.filter((k) => validKeys.has(k)));
+          const savedKeys = keys.filter((k) => validKeys.has(k));
+          // Neue defaultHidden-Metriken automatisch verstecken,
+          // wenn sie noch nicht in den gespeicherten Keys enthalten sind
+          // (d.h. der User hat sie noch nie bewusst ein-/ausgeblendet)
+          const knownKeys = new Set(keys);
+          const newDefaults = DEFAULT_HIDDEN_KEYS.filter((k) => !knownKeys.has(k));
+          setHiddenKpiKeys([...savedKeys, ...newDefaults]);
         }
       } catch {
         // Fehler beim Laden — mit Defaults starten
