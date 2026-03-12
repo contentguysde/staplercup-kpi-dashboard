@@ -140,6 +140,46 @@ export async function saveHiddenKpiPrefs(
   if (error) throw error;
 }
 
+/** Ausgeblendete Trend-Keys + gesehene Defaults laden (null = noch nie gesetzt) */
+export async function getHiddenTrendPrefs(userId: string): Promise<{
+  hiddenKeys: string[];
+  seenDefaults: string[];
+} | null> {
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .select("hidden_trend_keys, seen_trend_defaults")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const hiddenKeys = Array.isArray(data.hidden_trend_keys)
+    ? data.hidden_trend_keys.filter((k): k is string => typeof k === "string")
+    : [];
+  const seenDefaults = Array.isArray(data.seen_trend_defaults)
+    ? data.seen_trend_defaults.filter((k): k is string => typeof k === "string")
+    : [];
+
+  return { hiddenKeys, seenDefaults };
+}
+
+/** Ausgeblendete Trend-Keys + gesehene Defaults speichern */
+export async function saveHiddenTrendPrefs(
+  userId: string,
+  hiddenKeys: string[],
+  seenDefaults: string[]
+): Promise<void> {
+  const { error } = await supabase
+    .from("user_preferences")
+    .upsert(
+      { user_id: userId, hidden_trend_keys: hiddenKeys, seen_trend_defaults: seenDefaults },
+      { onConflict: "user_id" }
+    );
+
+  if (error) throw error;
+}
+
 /** Benutzerdefinierte Grid-Reihenfolge laden (null = Standard) */
 export async function getGridKpiOrder(userId: string): Promise<string[] | null> {
   const { data, error } = await supabase
