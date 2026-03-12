@@ -97,6 +97,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "tiktok_reach",
     label: "TikTok Reichweite",
+    sublabel: "Kanal-Einzelreichweite",
     icon: "Eye",
     category: "reichweite",
     defaultHidden: true,
@@ -104,6 +105,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "tiktok_interactions",
     label: "TikTok Interaktionen",
+    sublabel: "Absolute Anzahl",
     icon: "Heart",
     category: "engagement",
     defaultHidden: true,
@@ -111,6 +113,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "tiktok_posts",
     label: "TikTok Beiträge",
+    sublabel: "Absolute Anzahl",
     icon: "FileText",
     category: "content",
     defaultHidden: true,
@@ -118,6 +121,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "tiktok_stories",
     label: "TikTok Stories",
+    sublabel: "Absolute Anzahl",
     icon: "Layers",
     category: "content",
     defaultHidden: true,
@@ -125,6 +129,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "tiktok_comments_answered",
     label: "TikTok beantwortete Kommentare",
+    sublabel: "Absolute Anzahl",
     icon: "MessageCircle",
     category: "engagement",
     defaultHidden: true,
@@ -134,6 +139,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "instagram_reach",
     label: "Instagram Reichweite",
+    sublabel: "Kanal-Einzelreichweite",
     icon: "Eye",
     category: "reichweite",
     defaultHidden: true,
@@ -141,6 +147,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "instagram_interactions",
     label: "Instagram Interaktionen",
+    sublabel: "Absolute Anzahl",
     icon: "Heart",
     category: "engagement",
     defaultHidden: true,
@@ -148,6 +155,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "instagram_posts",
     label: "Instagram Beiträge",
+    sublabel: "Absolute Anzahl",
     icon: "FileText",
     category: "content",
     defaultHidden: true,
@@ -155,6 +163,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "instagram_stories",
     label: "Instagram Stories",
+    sublabel: "Absolute Anzahl",
     icon: "Layers",
     category: "content",
     defaultHidden: true,
@@ -162,6 +171,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "instagram_comments_answered",
     label: "Instagram beantwortete Kommentare",
+    sublabel: "Absolute Anzahl",
     icon: "MessageCircle",
     category: "engagement",
     defaultHidden: true,
@@ -171,6 +181,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "facebook_reach",
     label: "Facebook Reichweite",
+    sublabel: "Kanal-Einzelreichweite",
     icon: "Eye",
     category: "reichweite",
     defaultHidden: true,
@@ -178,6 +189,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "facebook_interactions",
     label: "Facebook Interaktionen",
+    sublabel: "Absolute Anzahl",
     icon: "Heart",
     category: "engagement",
     defaultHidden: true,
@@ -185,6 +197,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "facebook_posts",
     label: "Facebook Beiträge",
+    sublabel: "Absolute Anzahl",
     icon: "FileText",
     category: "content",
     defaultHidden: true,
@@ -192,6 +205,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "facebook_stories",
     label: "Facebook Stories",
+    sublabel: "Absolute Anzahl",
     icon: "Layers",
     category: "content",
     defaultHidden: true,
@@ -199,6 +213,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "facebook_comments_answered",
     label: "Facebook beantwortete Kommentare",
+    sublabel: "Absolute Anzahl",
     icon: "MessageCircle",
     category: "engagement",
     defaultHidden: true,
@@ -208,6 +223,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "youtube_views",
     label: "YouTube Views",
+    sublabel: "Kanal-Einzelreichweite",
     icon: "Play",
     category: "reichweite",
     defaultHidden: true,
@@ -215,6 +231,7 @@ export const METRICS: MetricConfig[] = [
   {
     key: "youtube_watch_time",
     label: "YouTube Watch Time (Stunden)",
+    sublabel: "Absolute Anzahl",
     icon: "Clock",
     category: "engagement",
     defaultHidden: true,

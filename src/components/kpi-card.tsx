@@ -55,6 +55,7 @@ const SUBLABEL_COLORS: Record<string, string> = {
   "Aggregierte Impressions": "border-violet-200 bg-violet-50/50 text-violet-700",
   "Kanal-Einzelreichweite": "border-emerald-200 bg-emerald-50/50 text-emerald-700",
   "Aggregierte Reichweite (Mediadaten)": "border-amber-200 bg-amber-50/50 text-amber-700",
+  "Absolute Anzahl": "border-slate-200 bg-slate-50/50 text-slate-700",
 };
 
 interface KpiCardProps {
