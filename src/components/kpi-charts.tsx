@@ -25,7 +25,22 @@ import { useHiddenTrends } from "@/hooks/use-hidden-trends";
 import { METRICS, CHANNELS } from "@/lib/constants";
 import { DashboardSkeleton } from "./dashboard-skeleton";
 import { TrendVisibilityDialog } from "./trend-visibility-dialog";
-import { AlertCircle, Plus, X } from "lucide-react";
+import {
+  AlertCircle,
+  Plus,
+  X,
+  BarChart3,
+  Users,
+  Music,
+  Camera,
+  ThumbsUp,
+  Play,
+  Globe,
+  Megaphone,
+  Newspaper,
+  Monitor,
+  Mail,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { MetricConfig } from "@/types";
 
@@ -35,9 +50,24 @@ function formatYAxis(value: number): string {
   return String(value);
 }
 
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Users,
+  Music,
+  Camera,
+  ThumbsUp,
+  Play,
+  Globe,
+  Megaphone,
+  Newspaper,
+  Monitor,
+  Mail,
+  BarChart3,
+};
+
 interface MetricGroup {
   id: string;
   label: string;
+  icon: string;
   metrics: MetricConfig[];
 }
 
@@ -49,7 +79,7 @@ function useMetricGroups(): MetricGroup[] {
     // Übergreifende Metriken (nicht in einem Kanal)
     const general = METRICS.filter((m) => !channelMetricKeys.has(m.key));
     if (general.length > 0) {
-      groups.push({ id: "general", label: "Übergreifend", metrics: general });
+      groups.push({ id: "general", label: "Übergreifend", icon: "BarChart3", metrics: general });
     }
 
     // Pro Kanal
@@ -58,7 +88,7 @@ function useMetricGroups(): MetricGroup[] {
         .map((key) => METRICS.find((m) => m.key === key))
         .filter((m): m is MetricConfig => m !== undefined);
       if (metrics.length > 0) {
-        groups.push({ id: channel.id, label: channel.label, metrics });
+        groups.push({ id: channel.id, label: channel.label, icon: channel.icon, metrics });
       }
     }
 
@@ -222,9 +252,17 @@ export function KpiCharts() {
 
           return (
             <section key={group.id}>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                {group.label}
-              </h3>
+              <div className="flex items-center gap-2.5 mb-4">
+                {(() => {
+                  const GroupIcon = ICON_MAP[group.icon] ?? BarChart3;
+                  return (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                      <GroupIcon className="h-4 w-4 text-primary" />
+                    </div>
+                  );
+                })()}
+                <h3 className="text-base font-semibold">{group.label}</h3>
+              </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {visibleCharts.map((m) => (
                   <KpiChart
