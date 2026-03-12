@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { METRICS } from "@/lib/constants";
+import { METRICS, DEFAULT_HIDDEN_KEYS } from "@/lib/constants";
 import { getHiddenKpiKeys, saveHiddenKpiKeys } from "@/lib/supabase/queries";
 
 export function useHiddenKpis() {
@@ -22,10 +22,16 @@ export function useHiddenKpis() {
       try {
         const keys = await getHiddenKpiKeys(userId);
         if (cancelled) return;
-        const validKeys = new Set(METRICS.map((m) => m.key));
-        setHiddenKpiKeys(keys.filter((k) => validKeys.has(k)));
+        if (keys === null) {
+          // Neuer User ohne gespeicherte Einstellung → Defaults anwenden
+          setHiddenKpiKeys(DEFAULT_HIDDEN_KEYS);
+        } else {
+          const validKeys = new Set(METRICS.map((m) => m.key));
+          setHiddenKpiKeys(keys.filter((k) => validKeys.has(k)));
+        }
       } catch {
-        // Fehler beim Laden — mit leerer Liste starten
+        // Fehler beim Laden — mit Defaults starten
+        setHiddenKpiKeys(DEFAULT_HIDDEN_KEYS);
       }
       if (!cancelled) setInitialized(true);
     }

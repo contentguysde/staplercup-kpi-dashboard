@@ -38,10 +38,11 @@ export interface MetricConfig {
   icon: string;
   category: MetricCategory;
   isComputed?: boolean;
+  defaultHidden?: boolean;
 }
 
 /** Metrik-Kategorien */
-export type MetricCategory = "social_media" | "reichweite" | "events";
+export type MetricCategory = "social_media" | "reichweite" | "events" | "engagement" | "content";
 
 /** Kanal-Definition (für Kanäle-Ansicht) */
 export interface ChannelDefinition {

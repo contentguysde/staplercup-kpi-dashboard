@@ -11,18 +11,14 @@ interface ChannelGridProps {
 
 export function ChannelGrid({ currentYear, previousYear }: ChannelGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {CHANNELS.map((channel) => (
-        <div
+        <ChannelCard
           key={channel.id}
-          className={channel.id === "social_media" ? "sm:col-span-2" : ""}
-        >
-          <ChannelCard
-            channel={channel}
-            currentYear={currentYear}
-            previousYear={previousYear}
-          />
-        </div>
+          channel={channel}
+          currentYear={currentYear}
+          previousYear={previousYear}
+        />
       ))}
     </div>
   );

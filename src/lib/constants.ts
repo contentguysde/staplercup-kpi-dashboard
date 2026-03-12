@@ -2,6 +2,7 @@ import type { MetricConfig, ChannelDefinition } from "@/types";
 
 /** Alle verfügbaren Metriken mit UI-Konfiguration */
 export const METRICS: MetricConfig[] = [
+  // --- Dashboard-Standard-KPIs (sichtbar) ---
   {
     key: "social_media_reach_total",
     label: "Social Media Reichweite gesamt",
@@ -80,10 +81,142 @@ export const METRICS: MetricConfig[] = [
     icon: "Mail",
     category: "reichweite",
   },
+
+  // --- Kanal-Detail-KPIs (standardmäßig ausgeblendet) ---
+
+  // TikTok
+  {
+    key: "tiktok_reach",
+    label: "TikTok Reichweite",
+    icon: "Eye",
+    category: "reichweite",
+    defaultHidden: true,
+  },
+  {
+    key: "tiktok_interactions",
+    label: "TikTok Interaktionen",
+    icon: "Heart",
+    category: "engagement",
+    defaultHidden: true,
+  },
+  {
+    key: "tiktok_posts",
+    label: "TikTok Beiträge",
+    icon: "FileText",
+    category: "content",
+    defaultHidden: true,
+  },
+  {
+    key: "tiktok_stories",
+    label: "TikTok Stories",
+    icon: "Layers",
+    category: "content",
+    defaultHidden: true,
+  },
+  {
+    key: "tiktok_comments_answered",
+    label: "TikTok beantwortete Kommentare",
+    icon: "MessageCircle",
+    category: "engagement",
+    defaultHidden: true,
+  },
+
+  // Instagram
+  {
+    key: "instagram_reach",
+    label: "Instagram Reichweite",
+    icon: "Eye",
+    category: "reichweite",
+    defaultHidden: true,
+  },
+  {
+    key: "instagram_interactions",
+    label: "Instagram Interaktionen",
+    icon: "Heart",
+    category: "engagement",
+    defaultHidden: true,
+  },
+  {
+    key: "instagram_posts",
+    label: "Instagram Beiträge",
+    icon: "FileText",
+    category: "content",
+    defaultHidden: true,
+  },
+  {
+    key: "instagram_stories",
+    label: "Instagram Stories",
+    icon: "Layers",
+    category: "content",
+    defaultHidden: true,
+  },
+  {
+    key: "instagram_comments_answered",
+    label: "Instagram beantwortete Kommentare",
+    icon: "MessageCircle",
+    category: "engagement",
+    defaultHidden: true,
+  },
+
+  // Facebook
+  {
+    key: "facebook_reach",
+    label: "Facebook Reichweite",
+    icon: "Eye",
+    category: "reichweite",
+    defaultHidden: true,
+  },
+  {
+    key: "facebook_interactions",
+    label: "Facebook Interaktionen",
+    icon: "Heart",
+    category: "engagement",
+    defaultHidden: true,
+  },
+  {
+    key: "facebook_posts",
+    label: "Facebook Beiträge",
+    icon: "FileText",
+    category: "content",
+    defaultHidden: true,
+  },
+  {
+    key: "facebook_stories",
+    label: "Facebook Stories",
+    icon: "Layers",
+    category: "content",
+    defaultHidden: true,
+  },
+  {
+    key: "facebook_comments_answered",
+    label: "Facebook beantwortete Kommentare",
+    icon: "MessageCircle",
+    category: "engagement",
+    defaultHidden: true,
+  },
+
+  // YouTube
+  {
+    key: "youtube_views",
+    label: "YouTube Views",
+    icon: "Play",
+    category: "reichweite",
+    defaultHidden: true,
+  },
+  {
+    key: "youtube_watch_time",
+    label: "YouTube Watch Time (Stunden)",
+    icon: "Clock",
+    category: "engagement",
+    defaultHidden: true,
+  },
 ];
 
 /** Nur die Metriken, die in der DB gespeichert werden (ohne berechnete) */
 export const STORABLE_METRICS = METRICS.filter((m) => !m.isComputed);
+
+/** Metric-Keys die standardmäßig im Dashboard ausgeblendet sind */
+export const DEFAULT_HIDDEN_KEYS = METRICS.filter((m) => m.defaultHidden).map((m) => m.key);
 
 /** Erstes verfügbares Jahr */
 export const FIRST_YEAR = 2022;
@@ -94,20 +227,65 @@ export const CHANNEL_NOT_EXISTED = -1;
 /** Kanal-Definitionen für die Kanäle-Ansicht */
 export const CHANNELS: ChannelDefinition[] = [
   {
-    id: "social_media",
-    label: "Social Media",
-    icon: "Share2",
-    description: "Organische Reichweite und Follower",
+    id: "tiktok",
+    label: "TikTok",
+    icon: "Music",
+    description: "TikTok-Kanal",
     metricKeys: [
-      "social_media_reach_total",
-      "social_media_followers_total",
       "tiktok_followers",
-      "instagram_followers",
-      "facebook_followers",
-      "youtube_subscribers",
+      "tiktok_reach",
+      "tiktok_interactions",
+      "tiktok_posts",
+      "tiktok_stories",
+      "tiktok_comments_answered",
     ],
-    primaryMetricKey: "social_media_reach_total",
-    secondaryMetricKey: "social_media_followers_total",
+    primaryMetricKey: "tiktok_followers",
+    secondaryMetricKey: "tiktok_reach",
+  },
+  {
+    id: "instagram",
+    label: "Instagram",
+    icon: "Camera",
+    description: "Instagram-Kanal",
+    metricKeys: [
+      "instagram_followers",
+      "instagram_reach",
+      "instagram_interactions",
+      "instagram_posts",
+      "instagram_stories",
+      "instagram_comments_answered",
+    ],
+    primaryMetricKey: "instagram_followers",
+    secondaryMetricKey: "instagram_reach",
+  },
+  {
+    id: "facebook",
+    label: "Facebook",
+    icon: "ThumbsUp",
+    description: "Facebook-Kanal",
+    metricKeys: [
+      "facebook_followers",
+      "facebook_reach",
+      "facebook_interactions",
+      "facebook_posts",
+      "facebook_stories",
+      "facebook_comments_answered",
+    ],
+    primaryMetricKey: "facebook_followers",
+    secondaryMetricKey: "facebook_reach",
+  },
+  {
+    id: "youtube",
+    label: "YouTube",
+    icon: "Play",
+    description: "YouTube-Kanal",
+    metricKeys: [
+      "youtube_subscribers",
+      "youtube_views",
+      "youtube_watch_time",
+    ],
+    primaryMetricKey: "youtube_subscribers",
+    secondaryMetricKey: "youtube_views",
   },
   {
     id: "website",

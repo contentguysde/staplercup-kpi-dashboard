@@ -29,6 +29,11 @@ import {
   Mail,
   Eye,
   Share2,
+  Heart,
+  FileText,
+  Layers,
+  MessageCircle,
+  Clock,
   TrendingUp,
   TrendingDown,
   Minus,
@@ -47,6 +52,11 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Mail,
   Eye,
   Share2,
+  Heart,
+  FileText,
+  Layers,
+  MessageCircle,
+  Clock,
 };
 
 interface ChannelCardProps {
