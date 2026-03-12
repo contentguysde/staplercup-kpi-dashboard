@@ -1,4 +1,4 @@
-import { CHANNEL_NOT_EXISTED } from "@/lib/constants";
+import { CHANNEL_NOT_EXISTED, METRIC_NOT_COLLECTED } from "@/lib/constants";
 
 const FOLLOWERS_KEYS = [
   "tiktok_followers",
@@ -29,7 +29,7 @@ function sumMetrics(
   // Wenn alle Werte null/undefined/Sentinel → null
   if (
     values.every(
-      (v) => v === null || v === undefined || v === CHANNEL_NOT_EXISTED
+      (v) => v === null || v === undefined || v === CHANNEL_NOT_EXISTED || v === METRIC_NOT_COLLECTED
     )
   ) {
     return null;
@@ -38,7 +38,7 @@ function sumMetrics(
   // Sentinel-Werte und null als 0 behandeln, wenn mindestens ein aktiver Wert vorhanden
   return values.reduce<number>(
     (sum, v) =>
-      sum + (v === null || v === undefined || v === CHANNEL_NOT_EXISTED ? 0 : v),
+      sum + (v === null || v === undefined || v === CHANNEL_NOT_EXISTED || v === METRIC_NOT_COLLECTED ? 0 : v),
     0
   );
 }

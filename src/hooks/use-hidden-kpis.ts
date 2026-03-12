@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { METRICS, DEFAULT_HIDDEN_KEYS } from "@/lib/constants";
-import { getHiddenKpiKeys, saveHiddenKpiKeys } from "@/lib/supabase/queries";
+import { getHiddenKpiPrefs, saveHiddenKpiPrefs } from "@/lib/supabase/queries";
 
 export function useHiddenKpis() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
   const [hiddenKpiKeys, setHiddenKpiKeys] = useState<string[]>([]);
+  const [seenDefaults, setSeenDefaults] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -20,24 +21,26 @@ export function useHiddenKpis() {
 
     async function load() {
       try {
-        const keys = await getHiddenKpiKeys(userId);
+        const prefs = await getHiddenKpiPrefs(userId);
         if (cancelled) return;
-        if (keys === null) {
+        if (prefs === null) {
           // Neuer User ohne gespeicherte Einstellung → Defaults anwenden
           setHiddenKpiKeys(DEFAULT_HIDDEN_KEYS);
+          setSeenDefaults(DEFAULT_HIDDEN_KEYS);
         } else {
           const validKeys = new Set(METRICS.map((m) => m.key));
-          const savedKeys = keys.filter((k) => validKeys.has(k));
+          const savedKeys = prefs.hiddenKeys.filter((k) => validKeys.has(k));
           // Neue defaultHidden-Metriken automatisch verstecken,
-          // wenn sie noch nicht in den gespeicherten Keys enthalten sind
-          // (d.h. der User hat sie noch nie bewusst ein-/ausgeblendet)
-          const knownKeys = new Set(keys);
-          const newDefaults = DEFAULT_HIDDEN_KEYS.filter((k) => !knownKeys.has(k));
+          // aber nur wenn der User sie noch nie gesehen hat
+          const seen = new Set(prefs.seenDefaults);
+          const newDefaults = DEFAULT_HIDDEN_KEYS.filter((k) => !seen.has(k));
           setHiddenKpiKeys([...savedKeys, ...newDefaults]);
+          setSeenDefaults([...prefs.seenDefaults, ...newDefaults]);
         }
       } catch {
         // Fehler beim Laden — mit Defaults starten
         setHiddenKpiKeys(DEFAULT_HIDDEN_KEYS);
+        setSeenDefaults(DEFAULT_HIDDEN_KEYS);
       }
       if (!cancelled) setInitialized(true);
     }
@@ -55,7 +58,7 @@ export function useHiddenKpis() {
     }
 
     saveTimeoutRef.current = setTimeout(() => {
-      saveHiddenKpiKeys(userId, hiddenKpiKeys).catch(() => {
+      saveHiddenKpiPrefs(userId, hiddenKpiKeys, seenDefaults).catch(() => {
         // Fehler beim Speichern — still ignorieren
       });
     }, 500);
@@ -65,7 +68,7 @@ export function useHiddenKpis() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [userId, hiddenKpiKeys, initialized]);
+  }, [userId, hiddenKpiKeys, seenDefaults, initialized]);
 
   const hideKpi = useCallback((key: string) => {
     setHiddenKpiKeys((prev) => (prev.includes(key) ? prev : [...prev, key]));

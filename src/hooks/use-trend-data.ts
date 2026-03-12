@@ -7,7 +7,7 @@ import {
   calculateSocialMediaReachTotal,
   calculateSocialMediaInteractionsTotal,
 } from "@/lib/calculations/social-media-total";
-import { METRICS, FIRST_YEAR, CHANNEL_NOT_EXISTED } from "@/lib/constants";
+import { METRICS, FIRST_YEAR, CHANNEL_NOT_EXISTED, METRIC_NOT_COLLECTED } from "@/lib/constants";
 
 export interface TrendDataPoint {
   year: number;
@@ -41,7 +41,9 @@ export function useTrendData() {
         if (byYear[entry.year]) {
           // Sentinel-Werte als null behandeln
           byYear[entry.year][entry.metric_key] =
-            entry.value === CHANNEL_NOT_EXISTED ? null : entry.value;
+            entry.value === CHANNEL_NOT_EXISTED || entry.value === METRIC_NOT_COLLECTED
+              ? null
+              : entry.value;
         }
       }
 

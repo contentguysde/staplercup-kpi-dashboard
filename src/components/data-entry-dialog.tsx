@@ -22,7 +22,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { upsertKpis, deleteKpis, upsertNote } from "@/lib/supabase/queries";
-import { STORABLE_METRICS, CHANNELS, CHANNEL_NOT_EXISTED } from "@/lib/constants";
+import {
+  STORABLE_METRICS,
+  CHANNELS,
+  CHANNEL_NOT_EXISTED,
+  METRIC_NOT_COLLECTED,
+} from "@/lib/constants";
 import { toast } from "sonner";
 import type { MetricConfig, YearKpiData } from "@/types";
 
@@ -34,16 +39,30 @@ interface DataEntryDialogProps {
   onSaved: () => void;
 }
 
+interface MetricGroup {
+  id: string;
+  label: string;
+  icon: string;
+  metrics: MetricConfig[];
+  isChannel: boolean;
+}
+
 /** Metriken nach Kanal gruppieren */
-function useMetricGroups() {
+function useMetricGroups(): MetricGroup[] {
   return useMemo(() => {
     const channelMetricKeys = new Set(CHANNELS.flatMap((c) => c.metricKeys));
-    const groups: { label: string; icon: string; metrics: MetricConfig[] }[] = [];
+    const groups: MetricGroup[] = [];
 
     // Übergreifende Metriken (nicht in einem Kanal)
     const general = STORABLE_METRICS.filter((m) => !channelMetricKeys.has(m.key));
     if (general.length > 0) {
-      groups.push({ label: "Übergreifend", icon: "Eye", metrics: general });
+      groups.push({
+        id: "general",
+        label: "Übergreifend",
+        icon: "Eye",
+        metrics: general,
+        isChannel: false,
+      });
     }
 
     // Pro Kanal
@@ -52,7 +71,13 @@ function useMetricGroups() {
         .map((key) => STORABLE_METRICS.find((m) => m.key === key))
         .filter((m): m is MetricConfig => m !== undefined);
       if (metrics.length > 0) {
-        groups.push({ label: channel.label, icon: channel.icon, metrics });
+        groups.push({
+          id: channel.id,
+          label: channel.label,
+          icon: channel.icon,
+          metrics,
+          isChannel: true,
+        });
       }
     }
 
@@ -62,39 +87,49 @@ function useMetricGroups() {
 
 function MetricField({
   metric,
-  isActive,
+  isCollected,
+  channelInactive,
   value,
   year,
   onValueChange,
-  onToggle,
+  onToggleCollected,
 }: {
   metric: MetricConfig;
-  isActive: boolean;
+  isCollected: boolean;
+  channelInactive: boolean;
   value: string;
   year: number;
   onValueChange: (key: string, value: string) => void;
-  onToggle: (key: string, checked: boolean) => void;
+  onToggleCollected: (key: string, checked: boolean) => void;
 }) {
+  const disabled = channelInactive;
+  const showInput = !channelInactive && isCollected;
+
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <Label
           htmlFor={metric.key}
-          className={!isActive ? "text-muted-foreground" : ""}
+          className={disabled || !isCollected ? "text-muted-foreground" : ""}
         >
           {metric.label}
         </Label>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
-            {isActive ? "Aktiv" : "Existierte nicht"}
+            {channelInactive
+              ? "Kanal existierte nicht"
+              : isCollected
+                ? "Erhoben"
+                : "Nicht erhoben"}
           </span>
           <Switch
-            checked={isActive}
-            onCheckedChange={(checked) => onToggle(metric.key, checked)}
+            checked={!channelInactive && isCollected}
+            disabled={channelInactive}
+            onCheckedChange={(checked) => onToggleCollected(metric.key, checked)}
           />
         </div>
       </div>
-      {isActive ? (
+      {showInput ? (
         <Input
           id={metric.key}
           type="text"
@@ -106,7 +141,9 @@ function MetricField({
         />
       ) : (
         <p className="text-sm text-muted-foreground italic py-2">
-          Kanal existierte in {year} noch nicht
+          {channelInactive
+            ? `Kanal existierte in ${year} noch nicht`
+            : `Wurde in ${year} noch nicht erhoben`}
         </p>
       )}
     </div>
@@ -122,6 +159,7 @@ export function DataEntryDialog({
 }: DataEntryDialogProps) {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [channelActive, setChannelActive] = useState<Record<string, boolean>>({});
+  const [metricCollected, setMetricCollected] = useState<Record<string, boolean>>({});
   const [noteValue, setNoteValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const groups = useMetricGroups();
@@ -131,29 +169,71 @@ export function DataEntryDialog({
     if (!open) return;
 
     const values: Record<string, string> = {};
+    const collected: Record<string, boolean> = {};
     const active: Record<string, boolean> = {};
+
+    // Zuerst Channel-Aktiv-Status bestimmen
+    for (const group of groups) {
+      if (!group.isChannel) {
+        active[group.id] = true;
+        continue;
+      }
+      // Kanal ist inaktiv wenn ALLE Metriken CHANNEL_NOT_EXISTED sind
+      const allNotExisted = group.metrics.every((m) => {
+        const val = currentData?.entries[m.key];
+        return val === CHANNEL_NOT_EXISTED;
+      });
+      // Kanal ist auch inaktiv wenn KEINE Metrik Daten hat
+      const hasAnyData = group.metrics.some((m) => {
+        const val = currentData?.entries[m.key];
+        return val !== null && val !== undefined;
+      });
+      active[group.id] = hasAnyData ? !allNotExisted : true;
+    }
+
+    // Dann pro Metrik
     for (const metric of STORABLE_METRICS) {
       const val = currentData?.entries[metric.key];
       if (val === CHANNEL_NOT_EXISTED) {
         values[metric.key] = "";
-        active[metric.key] = false;
+        collected[metric.key] = false;
+      } else if (val === METRIC_NOT_COLLECTED) {
+        values[metric.key] = "";
+        collected[metric.key] = false;
       } else {
         values[metric.key] = val !== null && val !== undefined ? String(val) : "";
-        active[metric.key] = true;
+        collected[metric.key] = true;
       }
     }
+
     setFormValues(values);
     setChannelActive(active);
+    setMetricCollected(collected);
     setNoteValue(currentData?.note ?? "");
-  }, [open, currentData]);
+  }, [open, currentData, groups]);
 
   const handleValueChange = (key: string, value: string) => {
     const cleaned = value.replace(/[^0-9]/g, "");
     setFormValues((prev) => ({ ...prev, [key]: cleaned }));
   };
 
-  const handleToggle = (key: string, checked: boolean) => {
-    setChannelActive((prev) => ({ ...prev, [key]: checked }));
+  const handleChannelToggle = (groupId: string, checked: boolean, metrics: MetricConfig[]) => {
+    setChannelActive((prev) => ({ ...prev, [groupId]: checked }));
+    if (!checked) {
+      // Alle Metriken des Kanals leeren
+      const newValues: Record<string, string> = {};
+      const newCollected: Record<string, boolean> = {};
+      for (const m of metrics) {
+        newValues[m.key] = "";
+        newCollected[m.key] = false;
+      }
+      setFormValues((prev) => ({ ...prev, ...newValues }));
+      setMetricCollected((prev) => ({ ...prev, ...newCollected }));
+    }
+  };
+
+  const handleCollectedToggle = (key: string, checked: boolean) => {
+    setMetricCollected((prev) => ({ ...prev, [key]: checked }));
     if (!checked) {
       setFormValues((prev) => ({ ...prev, [key]: "" }));
     }
@@ -162,16 +242,34 @@ export function DataEntryDialog({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const toUpsert: { year: number; metric_key: string; value: number }[] =
-        [];
+      const toUpsert: { year: number; metric_key: string; value: number }[] = [];
       const toDelete: string[] = [];
 
+      // Mapping: metric key → group id
+      const metricToGroup = new Map<string, string>();
+      for (const group of groups) {
+        for (const m of group.metrics) {
+          metricToGroup.set(m.key, group.id);
+        }
+      }
+
       for (const metric of STORABLE_METRICS) {
-        if (!channelActive[metric.key]) {
+        const groupId = metricToGroup.get(metric.key);
+        const isChannelActive = groupId ? (channelActive[groupId] ?? true) : true;
+
+        if (!isChannelActive) {
+          // Kanal existierte nicht
           toUpsert.push({
             year,
             metric_key: metric.key,
             value: CHANNEL_NOT_EXISTED,
+          });
+        } else if (!metricCollected[metric.key]) {
+          // Metrik wurde nicht erhoben
+          toUpsert.push({
+            year,
+            metric_key: metric.key,
+            value: METRIC_NOT_COLLECTED,
           });
         } else {
           const val = formValues[metric.key];
@@ -229,31 +327,59 @@ export function DataEntryDialog({
           defaultValue={defaultOpen}
           className="w-full"
         >
-          {groups.map((group) => (
-            <AccordionItem key={group.label} value={group.label}>
-              <AccordionTrigger className="text-sm font-semibold">
-                {group.label}
-                <span className="ml-2 text-xs font-normal text-muted-foreground">
-                  ({group.metrics.length})
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4 pt-2">
-                  {group.metrics.map((metric) => (
-                    <MetricField
-                      key={metric.key}
-                      metric={metric}
-                      isActive={channelActive[metric.key] ?? true}
-                      value={formValues[metric.key] ?? ""}
-                      year={year}
-                      onValueChange={handleValueChange}
-                      onToggle={handleToggle}
-                    />
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+          {groups.map((group) => {
+            const isActive = channelActive[group.id] ?? true;
+
+            return (
+              <AccordionItem key={group.label} value={group.label}>
+                <AccordionTrigger className="text-sm font-semibold">
+                  <div className="flex flex-1 items-center justify-between pr-2">
+                    <div className="flex items-center gap-2">
+                      {group.label}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        ({group.metrics.length})
+                      </span>
+                    </div>
+                    {group.isChannel && (
+                      <div
+                        className="flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+                        }}
+                      >
+                        <span className="text-xs font-normal text-muted-foreground">
+                          {isActive ? "Aktiv" : "Existierte nicht"}
+                        </span>
+                        <Switch
+                          checked={isActive}
+                          onCheckedChange={(checked) =>
+                            handleChannelToggle(group.id, checked, group.metrics)
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    {group.metrics.map((metric) => (
+                      <MetricField
+                        key={metric.key}
+                        metric={metric}
+                        isCollected={metricCollected[metric.key] ?? true}
+                        channelInactive={group.isChannel && !isActive}
+                        value={formValues[metric.key] ?? ""}
+                        year={year}
+                        onValueChange={handleValueChange}
+                        onToggleCollected={handleCollectedToggle}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
         </Accordion>
 
         <Separator />

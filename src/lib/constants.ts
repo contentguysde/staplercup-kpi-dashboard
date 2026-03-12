@@ -250,6 +250,9 @@ export const FIRST_YEAR = 2022;
 /** Sentinel-Wert: Kanal existierte in diesem Jahr noch nicht */
 export const CHANNEL_NOT_EXISTED = -1;
 
+/** Sentinel-Wert: Metrik wurde in diesem Jahr noch nicht erhoben */
+export const METRIC_NOT_COLLECTED = -2;
+
 /** Kanal-Definitionen für die Kanäle-Ansicht */
 export const CHANNELS: ChannelDefinition[] = [
   {

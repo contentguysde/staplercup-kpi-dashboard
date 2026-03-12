@@ -14,7 +14,7 @@ import {
   formatChange,
   formatPercentage,
 } from "@/lib/formatting/numbers";
-import { CHANNEL_NOT_EXISTED, METRICS } from "@/lib/constants";
+import { CHANNEL_NOT_EXISTED, METRIC_NOT_COLLECTED, METRICS } from "@/lib/constants";
 import type { ChannelDefinition, YearKpiData } from "@/types";
 import {
   Users,
@@ -67,7 +67,11 @@ interface ChannelCardProps {
 
 function getValue(entries: Record<string, number | null>, key: string): number | null {
   const val = entries[key] ?? null;
-  return val === CHANNEL_NOT_EXISTED ? null : val;
+  return val === CHANNEL_NOT_EXISTED || val === METRIC_NOT_COLLECTED ? null : val;
+}
+
+function isMetricNotCollected(entries: Record<string, number | null>, key: string): boolean {
+  return entries[key] === METRIC_NOT_COLLECTED;
 }
 
 function isChannelNotExisted(entries: Record<string, number | null>, metricKeys: string[]): boolean {
@@ -139,22 +143,29 @@ function SubMetric({
   if (!metric) return null;
 
   const Icon = ICON_MAP[metric.icon] ?? Users;
+  const notCollected = isMetricNotCollected(currentEntries, metricKey);
   const current = getValue(currentEntries, metricKey);
   const previous = previousEntries ? getValue(previousEntries, metricKey) : null;
   const yoy = calculateYoY(current, previous);
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
+    <div className={`flex items-center gap-3 rounded-lg border bg-muted/30 p-3 ${notCollected ? "opacity-60" : ""}`}>
       <Icon className="h-4 w-4 shrink-0 text-primary" />
       <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground truncate">{metric.label}</p>
-        <p className="text-lg font-semibold tracking-tight">
-          {current !== null ? formatNumber(current) : "—"}
-        </p>
-        {yoy.percentage !== null && (
-          <p className={`text-xs font-medium ${yoy.absolute! > 0 ? "text-green-600" : yoy.absolute! < 0 ? "text-red-600" : "text-muted-foreground"}`}>
-            {formatPercentage(yoy.percentage)}
-          </p>
+        {notCollected ? (
+          <p className="text-xs text-muted-foreground italic">Nicht erhoben</p>
+        ) : (
+          <>
+            <p className="text-lg font-semibold tracking-tight">
+              {current !== null ? formatNumber(current) : "—"}
+            </p>
+            {yoy.percentage !== null && (
+              <p className={`text-xs font-medium ${yoy.absolute! > 0 ? "text-green-600" : yoy.absolute! < 0 ? "text-red-600" : "text-muted-foreground"}`}>
+                {formatPercentage(yoy.percentage)}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

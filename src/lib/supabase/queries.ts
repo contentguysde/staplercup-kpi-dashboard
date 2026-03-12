@@ -100,27 +100,40 @@ export async function saveMajorKpiKeys(userId: string, keys: string[]): Promise<
   if (error) throw error;
 }
 
-/** Ausgeblendete KPI-Keys des aktuellen Users laden (null = noch nie gesetzt) */
-export async function getHiddenKpiKeys(userId: string): Promise<string[] | null> {
+/** Ausgeblendete KPI-Keys + bereits gesehene Defaults laden (null = noch nie gesetzt) */
+export async function getHiddenKpiPrefs(userId: string): Promise<{
+  hiddenKeys: string[];
+  seenDefaults: string[];
+} | null> {
   const { data, error } = await supabase
     .from("user_preferences")
-    .select("hidden_kpi_keys")
+    .select("hidden_kpi_keys, seen_default_keys")
     .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
 
-  const keys = data.hidden_kpi_keys;
-  return Array.isArray(keys) ? keys.filter((k): k is string => typeof k === "string") : null;
+  const hiddenKeys = Array.isArray(data.hidden_kpi_keys)
+    ? data.hidden_kpi_keys.filter((k): k is string => typeof k === "string")
+    : [];
+  const seenDefaults = Array.isArray(data.seen_default_keys)
+    ? data.seen_default_keys.filter((k): k is string => typeof k === "string")
+    : [];
+
+  return { hiddenKeys, seenDefaults };
 }
 
-/** Ausgeblendete KPI-Keys des aktuellen Users speichern */
-export async function saveHiddenKpiKeys(userId: string, keys: string[]): Promise<void> {
+/** Ausgeblendete KPI-Keys + gesehene Defaults speichern */
+export async function saveHiddenKpiPrefs(
+  userId: string,
+  hiddenKeys: string[],
+  seenDefaults: string[]
+): Promise<void> {
   const { error } = await supabase
     .from("user_preferences")
     .upsert(
-      { user_id: userId, hidden_kpi_keys: keys },
+      { user_id: userId, hidden_kpi_keys: hiddenKeys, seen_default_keys: seenDefaults },
       { onConflict: "user_id" }
     );
 

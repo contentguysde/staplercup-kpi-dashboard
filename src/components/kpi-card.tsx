@@ -13,7 +13,7 @@ import {
   formatChange,
   formatPercentage,
 } from "@/lib/formatting/numbers";
-import { CHANNEL_NOT_EXISTED } from "@/lib/constants";
+import { CHANNEL_NOT_EXISTED, METRIC_NOT_COLLECTED } from "@/lib/constants";
 import type { MetricConfig } from "@/types";
 import {
   Users,
@@ -77,12 +77,16 @@ export function KpiCard({
 }: KpiCardProps) {
   const Icon = ICON_MAP[metric.icon] ?? Users;
   const channelNotExisted = currentValue === CHANNEL_NOT_EXISTED;
+  const metricNotCollected = currentValue === METRIC_NOT_COLLECTED;
   const notRecorded = metric.isComputed && currentValue === null;
 
-  // Für Berechnung: Sentinel-Wert wie null behandeln
-  const displayValue = channelNotExisted ? null : currentValue;
+  // Für Berechnung: Sentinel-Werte wie null behandeln
+  const isSentinel = channelNotExisted || metricNotCollected;
+  const displayValue = isSentinel ? null : currentValue;
   const prevDisplayValue =
-    previousValue === CHANNEL_NOT_EXISTED ? null : previousValue;
+    previousValue === CHANNEL_NOT_EXISTED || previousValue === METRIC_NOT_COLLECTED
+      ? null
+      : previousValue;
   const yoy = calculateYoY(displayValue, prevDisplayValue);
 
   const hasYoY = yoy.absolute !== null;
@@ -91,7 +95,7 @@ export function KpiCard({
   const isNeutral = hasYoY && yoy.absolute === 0;
 
   return (
-    <Card className={`h-full ${channelNotExisted || notRecorded ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
+    <Card className={`h-full ${channelNotExisted || metricNotCollected || notRecorded ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {showDragHandle && (
@@ -124,6 +128,15 @@ export function KpiCard({
             </div>
             <Badge variant="secondary" className="mt-2 text-xs">
               Kanal existierte noch nicht
+            </Badge>
+          </>
+        ) : metricNotCollected ? (
+          <>
+            <div className="text-3xl font-bold tracking-tight text-muted-foreground">
+              —
+            </div>
+            <Badge variant="secondary" className="mt-2 text-xs">
+              Wurde noch nicht erhoben
             </Badge>
           </>
         ) : notRecorded ? (
