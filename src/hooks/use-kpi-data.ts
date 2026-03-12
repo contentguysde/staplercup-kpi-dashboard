@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getKpisByYears, getNoteByYear, getAvailableYears } from "@/lib/supabase/queries";
-import { calculateSocialMediaTotal } from "@/lib/calculations/social-media-total";
+import {
+  calculateSocialMediaTotal,
+  calculateSocialMediaReachTotal,
+  calculateSocialMediaInteractionsTotal,
+} from "@/lib/calculations/social-media-total";
 import type { YearKpiData } from "@/types";
 
 interface KpiDataResult {
@@ -38,11 +42,19 @@ export function useKpiData(year: number) {
         }
       }
 
-      // Social Media Total berechnen
+      // Social Media Totals berechnen
       currentEntries["social_media_followers_total"] =
         calculateSocialMediaTotal(currentEntries);
       previousEntries["social_media_followers_total"] =
         calculateSocialMediaTotal(previousEntries);
+      currentEntries["social_media_reach_total"] =
+        calculateSocialMediaReachTotal(currentEntries);
+      previousEntries["social_media_reach_total"] =
+        calculateSocialMediaReachTotal(previousEntries);
+      currentEntries["social_media_interactions_total"] =
+        calculateSocialMediaInteractionsTotal(currentEntries);
+      previousEntries["social_media_interactions_total"] =
+        calculateSocialMediaInteractionsTotal(previousEntries);
 
       const currentYear: YearKpiData = {
         year,
@@ -50,8 +62,13 @@ export function useKpiData(year: number) {
         note,
       };
 
+      const computedKeys = new Set([
+        "social_media_followers_total",
+        "social_media_reach_total",
+        "social_media_interactions_total",
+      ]);
       const hasPreviousData = Object.keys(previousEntries).some(
-        (k) => k !== "social_media_followers_total" && previousEntries[k] !== null
+        (k) => !computedKeys.has(k) && previousEntries[k] !== null
       );
 
       const previousYear: YearKpiData | null = hasPreviousData

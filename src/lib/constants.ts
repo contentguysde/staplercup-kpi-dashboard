@@ -9,6 +9,7 @@ export const METRICS: MetricConfig[] = [
     sublabel: "Aggregierte Kanal-Reichweiten",
     icon: "Eye",
     category: "reichweite",
+    isComputed: true,
   },
   {
     key: "social_media_followers_total",
@@ -16,6 +17,14 @@ export const METRICS: MetricConfig[] = [
     sublabel: "Aggregierte Kanal-Reichweiten",
     icon: "Users",
     category: "social_media",
+    isComputed: true,
+  },
+  {
+    key: "social_media_interactions_total",
+    label: "Social Media Interaktionen gesamt",
+    sublabel: "Aggregierte Kanal-Reichweiten",
+    icon: "Heart",
+    category: "engagement",
     isComputed: true,
   },
   {

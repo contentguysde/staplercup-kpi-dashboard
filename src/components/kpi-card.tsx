@@ -27,6 +27,7 @@ import {
   Monitor,
   Mail,
   Eye,
+  Heart,
   TrendingUp,
   TrendingDown,
   Minus,
@@ -46,6 +47,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Monitor,
   Mail,
   Eye,
+  Heart,
 };
 
 const SUBLABEL_COLORS: Record<string, string> = {
@@ -74,6 +76,7 @@ export function KpiCard({
 }: KpiCardProps) {
   const Icon = ICON_MAP[metric.icon] ?? Users;
   const channelNotExisted = currentValue === CHANNEL_NOT_EXISTED;
+  const notRecorded = metric.isComputed && currentValue === null;
 
   // Für Berechnung: Sentinel-Wert wie null behandeln
   const displayValue = channelNotExisted ? null : currentValue;
@@ -87,7 +90,7 @@ export function KpiCard({
   const isNeutral = hasYoY && yoy.absolute === 0;
 
   return (
-    <Card className={`h-full ${channelNotExisted ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
+    <Card className={`h-full ${channelNotExisted || notRecorded ? "opacity-60" : ""} ${isDragging ? "opacity-30" : ""}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {showDragHandle && (
@@ -120,6 +123,15 @@ export function KpiCard({
             </div>
             <Badge variant="secondary" className="mt-2 text-xs">
               Kanal existierte noch nicht
+            </Badge>
+          </>
+        ) : notRecorded ? (
+          <>
+            <div className="text-3xl font-bold tracking-tight text-muted-foreground">
+              —
+            </div>
+            <Badge variant="secondary" className="mt-2 text-xs">
+              Wurde nicht erfasst
             </Badge>
           </>
         ) : (

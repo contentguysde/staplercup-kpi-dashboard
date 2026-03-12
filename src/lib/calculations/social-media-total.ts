@@ -1,19 +1,32 @@
 import { CHANNEL_NOT_EXISTED } from "@/lib/constants";
 
-const SOCIAL_MEDIA_KEYS = [
+const FOLLOWERS_KEYS = [
   "tiktok_followers",
   "instagram_followers",
   "facebook_followers",
   "youtube_subscribers",
 ] as const;
 
-/** Berechnet die Gesamtzahl der Social Media Follower */
-export function calculateSocialMediaTotal(
-  entries: Record<string, number | null>
-): number | null {
-  const values = SOCIAL_MEDIA_KEYS.map((key) => entries[key]);
+const REACH_KEYS = [
+  "tiktok_reach",
+  "instagram_reach",
+  "facebook_reach",
+] as const;
 
-  // Wenn alle Werte null oder "existierte nicht" sind, ist das Ergebnis null
+const INTERACTIONS_KEYS = [
+  "tiktok_interactions",
+  "instagram_interactions",
+  "facebook_interactions",
+] as const;
+
+/** Summiert Werte der angegebenen Keys. Gibt null zurück wenn keine Daten vorhanden. */
+function sumMetrics(
+  entries: Record<string, number | null>,
+  keys: readonly string[]
+): number | null {
+  const values = keys.map((key) => entries[key]);
+
+  // Wenn alle Werte null/undefined/Sentinel → null
   if (
     values.every(
       (v) => v === null || v === undefined || v === CHANNEL_NOT_EXISTED
@@ -24,7 +37,29 @@ export function calculateSocialMediaTotal(
 
   // Sentinel-Werte und null als 0 behandeln, wenn mindestens ein aktiver Wert vorhanden
   return values.reduce<number>(
-    (sum, v) => sum + (v === null || v === undefined || v === CHANNEL_NOT_EXISTED ? 0 : v),
+    (sum, v) =>
+      sum + (v === null || v === undefined || v === CHANNEL_NOT_EXISTED ? 0 : v),
     0
   );
+}
+
+/** Berechnet die Gesamtzahl der Social Media Follower */
+export function calculateSocialMediaTotal(
+  entries: Record<string, number | null>
+): number | null {
+  return sumMetrics(entries, FOLLOWERS_KEYS);
+}
+
+/** Berechnet die Social Media Reichweite gesamt */
+export function calculateSocialMediaReachTotal(
+  entries: Record<string, number | null>
+): number | null {
+  return sumMetrics(entries, REACH_KEYS);
+}
+
+/** Berechnet die Social Media Interaktionen gesamt */
+export function calculateSocialMediaInteractionsTotal(
+  entries: Record<string, number | null>
+): number | null {
+  return sumMetrics(entries, INTERACTIONS_KEYS);
 }

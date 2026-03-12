@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getKpisByYears } from "@/lib/supabase/queries";
-import { calculateSocialMediaTotal } from "@/lib/calculations/social-media-total";
+import {
+  calculateSocialMediaTotal,
+  calculateSocialMediaReachTotal,
+  calculateSocialMediaInteractionsTotal,
+} from "@/lib/calculations/social-media-total";
 import { METRICS, FIRST_YEAR, CHANNEL_NOT_EXISTED } from "@/lib/constants";
 
 export interface TrendDataPoint {
@@ -41,10 +45,14 @@ export function useTrendData() {
         }
       }
 
-      // Social Media Total pro Jahr berechnen
+      // Social Media Totals pro Jahr berechnen
       for (const y of years) {
         byYear[y]["social_media_followers_total"] =
           calculateSocialMediaTotal(byYear[y]);
+        byYear[y]["social_media_reach_total"] =
+          calculateSocialMediaReachTotal(byYear[y]);
+        byYear[y]["social_media_interactions_total"] =
+          calculateSocialMediaInteractionsTotal(byYear[y]);
       }
 
       // In Array umwandeln
