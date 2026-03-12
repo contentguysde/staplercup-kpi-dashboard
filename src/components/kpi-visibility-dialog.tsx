@@ -1,6 +1,7 @@
 "use client";
 
-import { METRICS } from "@/lib/constants";
+import { useMemo } from "react";
+import { METRICS, CHANNELS } from "@/lib/constants";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
 import {
   Users,
@@ -21,7 +28,13 @@ import {
   Monitor,
   Mail,
   Eye,
+  Heart,
+  FileText,
+  Layers,
+  MessageCircle,
+  Clock,
 } from "lucide-react";
+import type { MetricConfig } from "@/types";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Users,
@@ -35,7 +48,37 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Monitor,
   Mail,
   Eye,
+  Heart,
+  FileText,
+  Layers,
+  MessageCircle,
+  Clock,
 };
+
+function useMetricGroups() {
+  return useMemo(() => {
+    const channelMetricKeys = new Set(CHANNELS.flatMap((c) => c.metricKeys));
+    const groups: { label: string; metrics: MetricConfig[] }[] = [];
+
+    // Übergreifende Metriken (nicht in einem Kanal)
+    const general = METRICS.filter((m) => !channelMetricKeys.has(m.key));
+    if (general.length > 0) {
+      groups.push({ label: "Übergreifend", metrics: general });
+    }
+
+    // Pro Kanal
+    for (const channel of CHANNELS) {
+      const metrics = channel.metricKeys
+        .map((key) => METRICS.find((m) => m.key === key))
+        .filter((m): m is MetricConfig => m !== undefined);
+      if (metrics.length > 0) {
+        groups.push({ label: channel.label, metrics });
+      }
+    }
+
+    return groups;
+  }, []);
+}
 
 interface KpiVisibilityDialogProps {
   open: boolean;
@@ -50,9 +93,11 @@ export function KpiVisibilityDialog({
   hiddenKpiKeys,
   onToggle,
 }: KpiVisibilityDialogProps) {
+  const groups = useMetricGroups();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>KPI-Karten verwalten</DialogTitle>
           <DialogDescription>
@@ -60,28 +105,45 @@ export function KpiVisibilityDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="-mx-4 divide-y">
-          {METRICS.map((metric) => {
-            const Icon = ICON_MAP[metric.icon] ?? Users;
-            const isVisible = !hiddenKpiKeys.includes(metric.key);
+        <Accordion
+          defaultValue={[groups[0]?.label]}
+          className="w-full"
+        >
+          {groups.map((group) => (
+            <AccordionItem key={group.label} value={group.label}>
+              <AccordionTrigger className="text-sm font-semibold">
+                {group.label}
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  ({group.metrics.length})
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="divide-y">
+                  {group.metrics.map((metric) => {
+                    const Icon = ICON_MAP[metric.icon] ?? Users;
+                    const isVisible = !hiddenKpiKeys.includes(metric.key);
 
-            return (
-              <label
-                key={metric.key}
-                className="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-4 w-4 text-primary shrink-0" />
-                  <span className="text-sm">{metric.label}</span>
+                    return (
+                      <label
+                        key={metric.key}
+                        className="flex cursor-pointer items-center justify-between py-3 hover:bg-muted/50 transition-colors px-1 rounded"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="h-4 w-4 text-primary shrink-0" />
+                          <span className="text-sm">{metric.label}</span>
+                        </div>
+                        <Switch
+                          checked={isVisible}
+                          onCheckedChange={() => onToggle(metric.key)}
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
-                <Switch
-                  checked={isVisible}
-                  onCheckedChange={() => onToggle(metric.key)}
-                />
-              </label>
-            );
-          })}
-        </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </DialogContent>
     </Dialog>
   );
