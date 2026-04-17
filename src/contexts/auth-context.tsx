@@ -53,13 +53,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // getUser() validiert das JWT serverseitig und versucht bei Bedarf
+      // einen Refresh. Ist auch der Refresh-Token abgelaufen, liefert es
+      // einen Fehler — dann loggen wir sauber aus statt im Lade-Zustand
+      // zu haengen. Hard-Timeout als Netz-und-Boden-Schutz falls der
+      // Refresh-Flow hakt (bekanntes supabase-js Problem bei toten Tokens).
+      const TIMEOUT = Symbol("timeout");
+      const timeout = new Promise<typeof TIMEOUT>((resolve) =>
+        setTimeout(() => resolve(TIMEOUT), 5000)
+      );
 
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      await loadRole(currentUser);
+      const result = await Promise.race([supabase.auth.getUser(), timeout]);
+
+      const sessionInvalid =
+        result === TIMEOUT || result.error || !result.data.user;
+
+      if (sessionInvalid) {
+        await supabase.auth.signOut().catch(() => {});
+        setUser(null);
+        setRole(null);
+        setIsLoading(false);
+        if (
+          typeof window !== "undefined" &&
+          !window.location.pathname.startsWith("/login")
+        ) {
+          window.location.replace("/login");
+        }
+        return;
+      }
+
+      setUser(result.data.user);
+      await loadRole(result.data.user);
       setIsLoading(false);
     };
 

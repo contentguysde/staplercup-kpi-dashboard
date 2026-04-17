@@ -24,10 +24,19 @@ export function useKpiData(year: number) {
     setIsLoading(true);
     setIsError(false);
     try {
-      const [entries, note, years] = await Promise.all([
-        getKpisByYears([year, year - 1]),
-        getNoteByYear(year),
-        getAvailableYears(),
+      // Hard-Timeout damit die UI nicht ewig im Skeleton haengt, falls
+      // der supabase-js Refresh-Flow bei toten Tokens blockiert.
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Supabase-Anfrage Timeout")), 10000)
+      );
+
+      const [entries, note, years] = await Promise.race([
+        Promise.all([
+          getKpisByYears([year, year - 1]),
+          getNoteByYear(year),
+          getAvailableYears(),
+        ]),
+        timeout,
       ]);
 
       // Einträge nach Jahr aufteilen
