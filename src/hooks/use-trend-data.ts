@@ -61,20 +61,21 @@ export function useTrendData() {
           calculateSocialMediaInteractionsTotal(byYear[y]);
 
         const stats = replyStatsByYear[idx];
-        if (stats) {
-          byYear[y]["total_comments_answered"] = stats.uniqueInteractions;
-          byYear[y]["tiktok_comments_answered"] =
-            stats.byPlatform.tiktok.interactions;
-          byYear[y]["instagram_comments_answered"] =
-            stats.byPlatform.instagram.interactions;
-          byYear[y]["facebook_comments_answered"] =
-            stats.byPlatform.facebook.interactions;
-        } else {
-          byYear[y]["total_comments_answered"] = null;
-          byYear[y]["tiktok_comments_answered"] = null;
-          byYear[y]["instagram_comments_answered"] = null;
-          byYear[y]["facebook_comments_answered"] = null;
-        }
+        // Bei API-Fehler oder Jahr ohne Reply-Daten (range.from === null):
+        // null im Chart -> Luecke statt irrefuehrender 0-Linie.
+        const noData = !stats || stats.range.from === null;
+        byYear[y]["total_comments_answered"] = noData
+          ? null
+          : stats.uniqueInteractions;
+        byYear[y]["tiktok_comments_answered"] = noData
+          ? null
+          : stats.byPlatform.tiktok.interactions;
+        byYear[y]["instagram_comments_answered"] = noData
+          ? null
+          : stats.byPlatform.instagram.interactions;
+        byYear[y]["facebook_comments_answered"] = noData
+          ? null
+          : stats.byPlatform.facebook.interactions;
       });
 
       // In Array umwandeln

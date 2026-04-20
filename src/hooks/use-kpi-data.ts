@@ -8,6 +8,7 @@ import {
   calculateSocialMediaInteractionsTotal,
 } from "@/lib/calculations/social-media-total";
 import { fetchReplyStatsViaProxy } from "@/lib/reply-stats-client";
+import { METRIC_NOT_COLLECTED } from "@/lib/constants";
 import type { StatsRepliesResponse } from "@/lib/stats-api-types";
 import type { YearKpiData } from "@/types";
 
@@ -28,12 +29,22 @@ function mergeReplyStats(
     entries["facebook_comments_answered"] = null;
     return;
   }
-  entries["total_comments_answered"] = stats.uniqueInteractions;
-  entries["tiktok_comments_answered"] = stats.byPlatform.tiktok.interactions;
-  entries["instagram_comments_answered"] =
-    stats.byPlatform.instagram.interactions;
-  entries["facebook_comments_answered"] =
-    stats.byPlatform.facebook.interactions;
+  // range.from === null heisst: in diesem Jahr existieren keine Reply-Daten
+  // (Bot startete Februar 2026). Sentinel-Wert sorgt fuer "Nicht erhoben"-
+  // Anzeige statt einer irrefuehrenden 0.
+  const value = (n: number) =>
+    stats.range.from === null ? METRIC_NOT_COLLECTED : n;
+
+  entries["total_comments_answered"] = value(stats.uniqueInteractions);
+  entries["tiktok_comments_answered"] = value(
+    stats.byPlatform.tiktok.interactions
+  );
+  entries["instagram_comments_answered"] = value(
+    stats.byPlatform.instagram.interactions
+  );
+  entries["facebook_comments_answered"] = value(
+    stats.byPlatform.facebook.interactions
+  );
 }
 
 export function useKpiData(year: number) {
