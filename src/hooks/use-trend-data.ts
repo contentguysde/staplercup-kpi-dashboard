@@ -7,6 +7,7 @@ import {
   calculateSocialMediaReachTotal,
   calculateSocialMediaInteractionsTotal,
 } from "@/lib/calculations/social-media-total";
+import { fetchReplyStatsViaProxy } from "@/lib/reply-stats-client";
 import { METRICS, FIRST_YEAR, CHANNEL_NOT_EXISTED, METRIC_NOT_COLLECTED } from "@/lib/constants";
 
 export interface TrendDataPoint {
@@ -29,7 +30,10 @@ export function useTrendData() {
         years.push(y);
       }
 
-      const entries = await getKpisByYears(years);
+      const [entries, ...replyStatsByYear] = await Promise.all([
+        getKpisByYears(years),
+        ...years.map((y) => fetchReplyStatsViaProxy(y)),
+      ]);
 
       // Daten nach Jahr gruppieren
       const byYear: Record<number, Record<string, number | null>> = {};
@@ -47,15 +51,31 @@ export function useTrendData() {
         }
       }
 
-      // Social Media Totals pro Jahr berechnen
-      for (const y of years) {
+      // Social Media Totals + Reply-Stats pro Jahr mergen
+      years.forEach((y, idx) => {
         byYear[y]["social_media_followers_total"] =
           calculateSocialMediaTotal(byYear[y]);
         byYear[y]["social_media_reach_total"] =
           calculateSocialMediaReachTotal(byYear[y]);
         byYear[y]["social_media_interactions_total"] =
           calculateSocialMediaInteractionsTotal(byYear[y]);
-      }
+
+        const stats = replyStatsByYear[idx];
+        if (stats) {
+          byYear[y]["total_comments_answered"] = stats.uniqueInteractions;
+          byYear[y]["tiktok_comments_answered"] =
+            stats.byPlatform.tiktok.interactions;
+          byYear[y]["instagram_comments_answered"] =
+            stats.byPlatform.instagram.interactions;
+          byYear[y]["facebook_comments_answered"] =
+            stats.byPlatform.facebook.interactions;
+        } else {
+          byYear[y]["total_comments_answered"] = null;
+          byYear[y]["tiktok_comments_answered"] = null;
+          byYear[y]["instagram_comments_answered"] = null;
+          byYear[y]["facebook_comments_answered"] = null;
+        }
+      });
 
       // In Array umwandeln
       const trendData: TrendDataPoint[] = years.map((y) => ({

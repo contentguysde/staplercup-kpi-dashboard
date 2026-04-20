@@ -28,6 +28,14 @@ export const METRICS: MetricConfig[] = [
     isComputed: true,
   },
   {
+    key: "total_comments_answered",
+    label: "Beantwortete Kommentare gesamt",
+    sublabel: "Automatisch via Social Media Agent",
+    icon: "MessageCircle",
+    category: "engagement",
+    isComputed: true,
+  },
+  {
     key: "tiktok_followers",
     label: "TikTok Follower",
     sublabel: "Kanal-Einzelreichweite",
@@ -129,10 +137,10 @@ export const METRICS: MetricConfig[] = [
   {
     key: "tiktok_comments_answered",
     label: "TikTok beantwortete Kommentare",
-    sublabel: "Absolute Anzahl",
+    sublabel: "Automatisch via Social Media Agent",
     icon: "MessageCircle",
     category: "engagement",
-    defaultHidden: true,
+    isComputed: true,
   },
 
   // Instagram
@@ -171,10 +179,10 @@ export const METRICS: MetricConfig[] = [
   {
     key: "instagram_comments_answered",
     label: "Instagram beantwortete Kommentare",
-    sublabel: "Absolute Anzahl",
+    sublabel: "Automatisch via Social Media Agent",
     icon: "MessageCircle",
     category: "engagement",
-    defaultHidden: true,
+    isComputed: true,
   },
 
   // Facebook
@@ -213,10 +221,10 @@ export const METRICS: MetricConfig[] = [
   {
     key: "facebook_comments_answered",
     label: "Facebook beantwortete Kommentare",
-    sublabel: "Absolute Anzahl",
+    sublabel: "Automatisch via Social Media Agent",
     icon: "MessageCircle",
     category: "engagement",
-    defaultHidden: true,
+    isComputed: true,
   },
 
   // YouTube

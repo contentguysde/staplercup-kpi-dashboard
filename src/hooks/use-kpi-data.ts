@@ -7,12 +7,33 @@ import {
   calculateSocialMediaReachTotal,
   calculateSocialMediaInteractionsTotal,
 } from "@/lib/calculations/social-media-total";
+import { fetchReplyStatsViaProxy } from "@/lib/reply-stats-client";
+import type { StatsRepliesResponse } from "@/lib/stats-api-types";
 import type { YearKpiData } from "@/types";
 
 interface KpiDataResult {
   currentYear: YearKpiData;
   previousYear: YearKpiData | null;
   availableYears: number[];
+}
+
+function mergeReplyStats(
+  entries: Record<string, number | null>,
+  stats: StatsRepliesResponse | null
+) {
+  if (!stats) {
+    entries["total_comments_answered"] = null;
+    entries["tiktok_comments_answered"] = null;
+    entries["instagram_comments_answered"] = null;
+    entries["facebook_comments_answered"] = null;
+    return;
+  }
+  entries["total_comments_answered"] = stats.uniqueInteractions;
+  entries["tiktok_comments_answered"] = stats.byPlatform.tiktok.interactions;
+  entries["instagram_comments_answered"] =
+    stats.byPlatform.instagram.interactions;
+  entries["facebook_comments_answered"] =
+    stats.byPlatform.facebook.interactions;
 }
 
 export function useKpiData(year: number) {
@@ -30,14 +51,17 @@ export function useKpiData(year: number) {
         setTimeout(() => reject(new Error("Supabase-Anfrage Timeout")), 10000)
       );
 
-      const [entries, note, years] = await Promise.race([
-        Promise.all([
-          getKpisByYears([year, year - 1]),
-          getNoteByYear(year),
-          getAvailableYears(),
-        ]),
-        timeout,
-      ]);
+      const [entries, note, years, replyCurrent, replyPrevious] =
+        await Promise.race([
+          Promise.all([
+            getKpisByYears([year, year - 1]),
+            getNoteByYear(year),
+            getAvailableYears(),
+            fetchReplyStatsViaProxy(year),
+            fetchReplyStatsViaProxy(year - 1),
+          ]),
+          timeout,
+        ]);
 
       // Einträge nach Jahr aufteilen
       const currentEntries: Record<string, number | null> = {};
@@ -65,6 +89,10 @@ export function useKpiData(year: number) {
       previousEntries["social_media_interactions_total"] =
         calculateSocialMediaInteractionsTotal(previousEntries);
 
+      // Reply-Stats von der Stats-API mergen (null bei Fehler)
+      mergeReplyStats(currentEntries, replyCurrent);
+      mergeReplyStats(previousEntries, replyPrevious);
+
       const currentYear: YearKpiData = {
         year,
         entries: currentEntries,
@@ -75,6 +103,10 @@ export function useKpiData(year: number) {
         "social_media_followers_total",
         "social_media_reach_total",
         "social_media_interactions_total",
+        "total_comments_answered",
+        "tiktok_comments_answered",
+        "instagram_comments_answered",
+        "facebook_comments_answered",
       ]);
       const hasPreviousData = Object.keys(previousEntries).some(
         (k) => !computedKeys.has(k) && previousEntries[k] !== null
